@@ -1,0 +1,9 @@
+
+# Created by https://www.toptal.com/developers/gitignore/api/agda
+# Edit at https://www.toptal.com/developers/gitignore?templates=agda
+
+### Agda ###
+*.agdai
+MAlonzo/**
+
+# End of https://www.toptal.com/developers/gitignore/api/agda
