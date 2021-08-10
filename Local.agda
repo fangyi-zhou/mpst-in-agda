@@ -1,2 +1,5 @@
+open import Common using (Role; Label)
+
 data Local : Set where
-    l_end : Local
+    End : Local
+    Send Recv : Role -> Label -> Local -> Local
