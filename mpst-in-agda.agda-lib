@@ -1,0 +1,3 @@
+name: mpst-in-agda
+depend: standard-library
+include: .
