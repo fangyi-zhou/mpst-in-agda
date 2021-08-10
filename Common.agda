@@ -7,3 +7,6 @@ Role = ℕ
 
 Label : Set
 Label = ℕ
+
+data Action : Set where
+  AMsg : (p q : Role) -> Label -> Action
