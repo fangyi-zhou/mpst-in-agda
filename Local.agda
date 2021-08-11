@@ -11,5 +11,5 @@ record NamedLocal : Set where
         local : Local
 
 data _-_→l_ : NamedLocal -> Action -> NamedLocal -> Set where
-    LSend : ∀{p q l lt'} -> (p , Send q l lt') - (AMsg p q l) →l (p , lt')
-    LRecv : ∀{p q l lt'} -> (q , Recv q l lt') - (AMsg p q l) →l (q , lt')
+    LSend : ∀{p q l lt' p≠q} -> (p , Send q l lt') - (AMsg p q p≠q l) →l (p , lt')
+    LRecv : ∀{p q l lt' p≠q} -> (q , Recv q l lt') - (AMsg p q p≠q l) →l (q , lt')
