@@ -28,11 +28,11 @@ g₂ = MsgSingle r s (λ ()) l' g₁
 g₂' : Global
 g₂' = MsgSingle r s (λ ()) l' End
 
-g₁→end : g₁ - (AMsg p q l) →ᵍ End
+g₁→end : g₁ - (AMsg p q l) →g End
 g₁→end = GPrefix
 
-g₂→g₁ : g₂ - (AMsg r s l') →ᵍ g₁
+g₂→g₁ : g₂ - (AMsg r s l') →g g₁
 g₂→g₁ = GPrefix
 
-g₂→g₂' : g₂ - (AMsg p q l) →ᵍ g₂'
+g₂→g₂' : g₂ - (AMsg p q l) →g g₂'
 g₂→g₂' = GCont g₁→end (λ ()) (λ ()) (λ ()) (λ ())
