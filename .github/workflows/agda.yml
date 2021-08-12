@@ -22,7 +22,8 @@ jobs:
         path: |
           ~/.stack
           ~/.local
-        key: ${{ runner.os }}-${{ matrix.ghc-ver }}-${{ matrix.agda-ref }}
+          agda
+        key: ${{ runner.os }}-${{ matrix.ghc-ver }}-${{ matrix.agda-ref }}-v2
 
     - name: Install stack
       if: steps.cache-stack.outputs.cache-hit != 'true'
