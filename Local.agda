@@ -1,32 +1,35 @@
 open import Relation.Binary.PropositionalEquality using (subst; _≡_)
 open import Relation.Nullary using (¬_)
 open import Data.Bool using (true)
+open import Data.Fin using (Fin)
 open import Data.Maybe using (just)
+open import Data.Nat using (ℕ)
 open import Data.Nat.Properties using (<-strictTotalOrder)
-import Data.Tree.AVL <-strictTotalOrder as Map
-open Map using (_,_)
+open import Data.Vec using (Vec; lookup; _[_]≔_)
 
-open import Common using (Role; Label; Action; AMsg)
+open import Common using (Label; Action; AMsg)
 
-data Local : Set where
-    End : Local
-    Send Recv : Role -> Label -> Local -> Local
+data Local (n : ℕ) : Set where
+    End : Local n
+    Send Recv : Fin n -> Label -> Local n -> Local n
 
-Local' = Map.MkValue (λ _ -> Local) (subst (λ _ -> Local))
+Configuration : ℕ -> Set
+Configuration n = Vec (Local n) n
 
-Configuration : Set
-Configuration = Map.Tree Local'
-
-data _-_→l_ : Map.K& Local' -> Action -> Map.K& Local' -> Set where
-    LSend : ∀{p q l lt' p≠q} -> (p , Send q l lt') - (AMsg p q p≠q l) →l (p , lt')
-    LRecv : ∀{p q l lt' p≠q} -> (q , Recv p l lt') - (AMsg p q p≠q l) →l (q , lt')
-
-data _-_→c_ : Configuration -> Action -> Configuration -> Set where
-    CComm : ∀{p q l lp lq lp' lq'}
-             -> (c : Configuration)
+data _-_→l_ {n : ℕ} : Local n -> Action n -> Local n -> Set where
+    LSend : ∀{q lbl lt'}
+             -> (p : Fin n)
              -> (p≠q : ¬ (p ≡ q))
-             -> Map.lookup p c ≡ just lp
-             -> Map.lookup q c ≡ just lq
-             -> (p , lp) - (AMsg p q p≠q l) →l (p , lp')
-             -> (q , lq) - (AMsg p q p≠q l) →l (q , lq')
-             -> c - (AMsg p q p≠q l) →c (Map.insert p lp' (Map.insert q lq' c))
+             -> Send q lbl lt' - (AMsg p q p≠q lbl) →l lt'
+    LRecv : ∀{q lbl lt'}
+             -> (p : Fin n)
+             -> (q≠p : ¬ (q ≡ p))
+             -> Recv q lbl lt' - (AMsg q p q≠p lbl) →l lt'
+
+data _-_→c_ {n : ℕ} : Configuration n -> Action n -> Configuration n -> Set where
+    CComm : ∀{p q l lp' lq'}
+             -> (c : Configuration n)
+             -> (p≠q : ¬ (p ≡ q))
+             -> lookup c p - (AMsg p q p≠q l) →l lp'
+             -> lookup c q - (AMsg p q p≠q l) →l lq'
+             -> c - (AMsg p q p≠q l) →c ((c [ p ]≔ lp') [ q ]≔ lq')

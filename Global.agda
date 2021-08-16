@@ -1,15 +1,17 @@
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality using (_≡_)
+open import Data.Fin using (Fin)
+open import Data.Nat using (ℕ)
 open import Data.Nat.Properties using (<-strictTotalOrder)
 import Data.Tree.AVL.Sets <-strictTotalOrder as Sets
 
-open import Common using (Role; Label; Action; AMsg)
+open import Common using (Label; Action; AMsg)
 
-data Global : Set where
-    End : Global
-    MsgSingle : (p q : Role) -> ¬ (p ≡ q) -> Label -> Global -> Global
+data Global (n : ℕ) : Set where
+    End : Global n
+    MsgSingle : (p q : Fin n) -> ¬ (p ≡ q) -> Label -> Global n -> Global n
 
-data _-_→g_ : Global -> Action -> Global -> Set where
+data _-_→g_ {n : ℕ} : Global n -> Action n -> Global n -> Set where
     GPrefix : ∀{p q l g' p≠q} -> (MsgSingle p q p≠q l g') - (AMsg p q p≠q l) →g g'
     GCont : ∀{p q l l' r s g₁ g₂ p≠q r≠s}
         -> g₁ - (AMsg p q p≠q l) →g g₂
@@ -18,7 +20,3 @@ data _-_→g_ : Global -> Action -> Global -> Set where
         -> ¬ (p ≡ s)
         -> ¬ (q ≡ s)
         -> (MsgSingle r s r≠s l' g₁) - (AMsg p q p≠q l) →g (MsgSingle r s r≠s l' g₂)
-
-roles : Global -> Sets.⟨Set⟩
-roles End = Sets.empty
-roles (MsgSingle p q _ _ g') = Sets.insert p (Sets.insert q (roles g'))

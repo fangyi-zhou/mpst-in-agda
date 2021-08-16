@@ -1,20 +1,15 @@
 open import Data.Empty using (⊥-elim)
-open import Data.Bool using (true; false)
-open import Data.Maybe using (just)
-open import Data.Nat using (_≟_)
-open import Data.Nat.Properties using (≡ᵇ⇒≡)
+open import Data.Fin using (Fin; _≟_)
+open import Data.Nat using (ℕ)
+open import Data.Vec using (lookup)
 open import Relation.Nullary using (yes; no)
 open import Relation.Binary.PropositionalEquality using (sym; trans; _≡_)
-open import Data.Nat.Properties using (<-strictTotalOrder)
-import Data.Tree.AVL <-strictTotalOrder as Map
-import Data.Tree.AVL.Sets <-strictTotalOrder as Sets
-open Map using (_,_)
 
-open import Common using (Role; Label)
-open import Global using (Global; roles)
+open import Common using (Label)
+open import Global using (Global)
 open import Local using (Local; Configuration)
 
-project : Global -> Role -> Local
+project : ∀{ n : ℕ } -> Global n -> Fin n -> Local n
 project Global.End r = Local.End
 project (Global.MsgSingle p q p≠q l g) r with p ≟ r | q ≟ r
 ...                                     | yes _   | no _    = Local.Send q l (project g r)
@@ -23,7 +18,6 @@ project (Global.MsgSingle p q p≠q l g) r with p ≟ r | q ≟ r
 ...                                     | yes p≡r | yes q≡r = ⊥-elim (p≠q (trans p≡r (sym q≡r)))
 
 
-record _↔_ (g : Global) (c : Configuration) : Set where
+record _↔_ { n : ℕ } (g : Global n) (c : Configuration n) : Set where
     field
-        hasRoles : ∀(p : Role) -> (p Sets.∈? (roles g)) ≡ true -> (p Map.∈? c) ≡ true
-        isProj : ∀{ l } -> ∀(p : Role) -> Map.lookup p c ≡ just l -> l ≡ project g p
+        isProj : ∀(p : Fin n) -> lookup c p ≡ project g p
