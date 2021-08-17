@@ -2,9 +2,12 @@ open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; _≟_)
 open import Data.Nat using (ℕ)
 open import Data.Vec using (lookup; _[_]≔_)
-open import Relation.Nullary using (yes; no)
-open import Relation.Binary.PropositionalEquality using (sym; trans; _≡_; refl; cong)
+open import Data.Vec.Functional.Properties using (updateAt-minimal)
+open import Function.Base using (const)
+open import Relation.Nullary using (yes; no; ¬_)
+open import Relation.Binary.PropositionalEquality using (sym; trans; _≡_; refl; cong; _≢_)
 open import Data.Product using (∃-syntax; _,_)
+open import Level using (Level)
 
 open import Common using (Label; Action)
 open import Global using (Global; _-_→g_)
@@ -18,6 +21,8 @@ project (Global.MsgSingle p q p≠q l g) r with p ≟ r | q ≟ r
 ...                                     | no _    | no _    = project g r
 ...                                     | yes p≡r | yes q≡r = ⊥-elim (p≠q (trans p≡r (sym q≡r)))
 
+¬≡-flip : ∀ { l : Level } { A B : Set l } -> (A ≢ B) -> (B ≢ A)
+¬≡-flip a≢b = λ b≡a → a≢b (sym b≡a)
 
 record _↔_ { n : ℕ } (g : Global n) (c : Configuration n) : Set where
     field
@@ -51,7 +56,28 @@ soundness
     ... | res | no  q≠q | _          = ⊥-elim (q≠q refl)
     lqReduce : lookup c q - act →l (project g' q)
     lqReduce rewrite _↔_.isProj assoc q = lqReduce'
-soundness assoc (_-_→g_.GCont gReduce x x₁ x₂ x₃) = {!   !}
+soundness
+    {n = n}
+    {act = act@(.Action.AMsg p q p≠q l)}
+    {c = c}
+    {g = g@(Global.MsgSingle r s r≠s l' g₁)}
+    {g' = g'@(.Global.MsgSingle r s r≠s l' g₂)}
+    assoc
+    (_-_→g_.GCont gReduce p≠r q≠r p≠s q≠s)
+    = {!  !}
+  where
+    cSub : Configuration n
+    cSub = (c [ p ]≔ (project g₁ p)) [ q ]≔ (project g₁ q)
+    lookup-cSub-r : lookup cSub r ≡ project g₁ r
+    lookup-cSub-r rewrite updateAt-minimal r q (const (project g₁ q)) (¬≡-flip q≠r) = {!   !}
+    isProj-g₁ : ∀( t : Fin n ) -> lookup cSub t ≡ project g₁ t
+    isProj-g₁ t with r ≟ t   | s ≟ t
+    ...            | yes r≡t | no _    rewrite (sym r≡t) = lookup-cSub-r
+    ...            | no _    | yes _   = {!   !}
+    ...            | no _    | no _    = {!   !}
+    ...            | yes r≡t | yes s≡t = ⊥-elim (r≠s (trans r≡t (sym s≡t)))
+    g₁↔cSub : g₁ ↔ cSub
+    g₁↔cSub = record { isProj = isProj-g₁ }
 {--
 soundness
     {n = n}
