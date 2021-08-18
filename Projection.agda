@@ -6,7 +6,7 @@ open import Data.Vec.Properties using (lookup∘updateAt; lookup∘updateAt′)
 open import Function.Base using (const)
 open import Relation.Nullary using (yes; no; ¬_)
 open import Relation.Binary.PropositionalEquality using (sym; trans; _≡_; refl; cong; _≢_)
-open import Data.Product using (∃-syntax; _,_; proj₁; proj₂)
+open import Data.Product using (∃-syntax; _,_; proj₁; proj₂; _×_)
 open import Level using (Level)
 
 open import Common using (Label; Action)
@@ -24,24 +24,34 @@ project (Global.MsgSingle p q p≠q l g) r with p ≟ r | q ≟ r
 ¬≡-flip : ∀ { A B : Set } -> (A ≢ B) -> (B ≢ A)
 ¬≡-flip a≢b = λ b≡a → a≢b (sym b≡a)
 
+proj-t : ∀{ n : ℕ } -> (r s t : Fin n) -> ∀{r≠s l} -> (g' : Global n) -> r ≢ t -> s ≢ t -> project (Global.MsgSingle r s r≠s l g') t ≡ project g' t
+proj-t r s t _ r≠t s≠t with  r ≟ t   | s ≟ t
+...                        | yes r≡t | _       = ⊥-elim (r≠t r≡t)
+...                        | _       | yes s≡t = ⊥-elim (s≠t s≡t)
+...                        | no _    | no _    = refl
+
 record _↔_ { n : ℕ } (g : Global n) (c : Configuration n) : Set where
     field
         isProj : ∀(p : Fin n) -> lookup c p ≡ project g p
 
--- TODO: This statement is missing g' ↔ c'
 soundness : ∀{ n } { act : Action n } { c g g' }
             -> g ↔ c
             -> g - act →g g'
-            -> ∃[ c' ] c - act →c c'
+            -> ∃[ c' ] ((c - act →c c') × (g' ↔ c'))
 soundness
+    {n = n}
     {act = act@(.Action.AMsg p q p≠q l)}
     {c = c}
     {g = g@(Global.MsgSingle p q p≠q l g')}
     {g' = .g'}
     assoc
     _-_→g_.GPrefix
-    = (c [ p ]≔ (project g' p)) [ q ]≔ (project g' q) , CComm c p≠q lpReduce lqReduce
+    = c' , (CComm c p≠q lpReduce lqReduce , assoc')
   where
+    c'' : Configuration n
+    c'' = c [ p ]≔ (project g' p)
+    c' : Configuration n
+    c' = c'' [ q ]≔ (project g' q)
     lpReduce' : project g p - act →l (project g' p)
     lpReduce' with project g p | p ≟ p   | q ≟ p
     ...          | _           | yes _   | no  _   = _-_→l_.LSend p p≠q
@@ -56,6 +66,17 @@ soundness
     ...          | _           | no  q≠q | _       = ⊥-elim (q≠q refl)
     lqReduce : lookup c q - act →l (project g' q)
     lqReduce rewrite _↔_.isProj assoc q = lqReduce'
+    isProj-g' : (r : Fin n) -> lookup c' r ≡ project g' r
+    isProj-g' r with p ≟ r   | q ≟ r
+    ...            | yes p≡r | yes q≡r = ⊥-elim (p≠q (trans p≡r (sym q≡r)))
+    ...            | yes p≡r | no  _   rewrite (sym p≡r)
+                                       rewrite lookup∘updateAt′ p q {const (project g' q)} p≠q c'' = lookup∘updateAt p c
+    ...            | no _    | yes q≡r rewrite (sym q≡r) = lookup∘updateAt q c''
+    ...            | no p≠r  | no  q≠r rewrite lookup∘updateAt′ r q {const (project g' q)} (λ r≡q -> q≠r (sym r≡q)) c''
+                                       rewrite lookup∘updateAt′ r p {const (project g' p)} (λ r≡p -> p≠r (sym r≡p)) c
+                                       rewrite _↔_.isProj assoc r = proj-t p q r g' p≠r q≠r
+    assoc' : g' ↔ c'
+    assoc' = record { isProj = isProj-g' }
 soundness
     {n = n}
     {act = act@(.Action.AMsg p q p≠q l)}
@@ -64,7 +85,7 @@ soundness
     {g' = g'@(.Global.MsgSingle r s r≠s l' g₂)}
     assoc
     (_-_→g_.GCont gReduce p≠r q≠r p≠s q≠s)
-    = c' , cReduce
+    = c' , (cReduce , assoc')
   where
     cSub' : Configuration n
     cSub' = c [ r ]≔ (project g₁ r)
@@ -80,17 +101,14 @@ soundness
     lookup-s = lookup∘updateAt s cSub'
     lookup-cSub-s : lookup cSub s ≡ project g₁ s
     lookup-cSub-s rewrite lookup-s = refl
-    proj-t : (t : Fin n) -> r ≢ t -> s ≢ t -> project g t ≡ project g₁ t
-    proj-t t r≠t s≠t with project g t | r ≟ t   | s ≟ t
-    ...                 | _           | yes r≡t | _       = ⊥-elim (r≠t r≡t)
-    ...                 | _           | _       | yes s≡t = ⊥-elim (s≠t s≡t)
-    ...                 | _           | no _    | no _    = refl
     lookup-t-1 : (t : Fin n) -> r ≢ t -> lookup cSub' t ≡ lookup c t
     lookup-t-1 t r≠t = lookup∘updateAt′ t r (λ t≡r -> r≠t (sym t≡r)) c
     lookup-t-2 : (t : Fin n) -> s ≢ t -> lookup cSub t ≡ lookup cSub' t
     lookup-t-2 t s≠t = lookup∘updateAt′ t s (λ t≡s -> s≠t (sym t≡s)) cSub'
     lookup-cSub-t : (t : Fin n) -> r ≢ t -> s ≢ t -> lookup cSub t ≡ project g₁ t
-    lookup-cSub-t t r≠t s≠t rewrite lookup-t-2 t s≠t rewrite lookup-t-1 t r≠t rewrite sym (proj-t t r≠t s≠t) = _↔_.isProj assoc t
+    lookup-cSub-t t r≠t s≠t rewrite lookup-t-2 t s≠t
+                            rewrite lookup-t-1 t r≠t
+                            rewrite sym (proj-t r s t g₁ r≠t s≠t) = _↔_.isProj assoc t
     isProj-g₁ : ∀( t : Fin n ) -> lookup cSub t ≡ project g₁ t
     isProj-g₁ t with r ≟ t   | s ≟ t
     ...            | yes r≡t | no _    rewrite (sym r≡t) = lookup-cSub-r
@@ -99,14 +117,15 @@ soundness
     ...            | yes r≡t | yes s≡t = ⊥-elim (r≠s (trans r≡t (sym s≡t)))
     g₁↔cSub : g₁ ↔ cSub
     g₁↔cSub = record { isProj = isProj-g₁ }
-    ∃c'Sub : ∃[ c'Sub ] cSub - act →c c'Sub
+    ∃c'Sub : ∃[ c'Sub ] (cSub - act →c c'Sub × g₂ ↔ c'Sub)
     ∃c'Sub = soundness g₁↔cSub gReduce
     c'Sub : Configuration n
     c'Sub = proj₁ ∃c'Sub
     cSubReduce : cSub - act →c c'Sub
-    cSubReduce = proj₂ ∃c'Sub
+    cSubReduce = proj₁ (proj₂ ∃c'Sub)
     c'' : Configuration n
     c'' = c [ r ]≔ (Local.Send s l' (lookup c'Sub r))
     c' : Configuration n
     c' = c'' [ s ]≔ (Local.Recv r l' (lookup c'Sub s))
     postulate cReduce : c - act →c c'
+    postulate assoc' : Global.MsgSingle r s r≠s l' g₂ ↔ c'
