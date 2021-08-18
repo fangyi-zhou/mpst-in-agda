@@ -6,7 +6,7 @@ open import Data.Vec.Properties using (lookup∘updateAt; lookup∘updateAt′)
 open import Function.Base using (const)
 open import Relation.Nullary using (yes; no; ¬_)
 open import Relation.Binary.PropositionalEquality using (sym; trans; _≡_; refl; cong; _≢_)
-open import Data.Product using (∃-syntax; _,_)
+open import Data.Product using (∃-syntax; _,_; proj₁; proj₂)
 open import Level using (Level)
 
 open import Common using (Label; Action)
@@ -64,7 +64,7 @@ soundness
     {g' = g'@(.Global.MsgSingle r s r≠s l' g₂)}
     assoc
     (_-_→g_.GCont gReduce p≠r q≠r p≠s q≠s)
-    = {!  !}
+    = c' , cReduce
   where
     cSub' : Configuration n
     cSub' = c [ r ]≔ (project g₁ r)
@@ -99,21 +99,14 @@ soundness
     ...            | yes r≡t | yes s≡t = ⊥-elim (r≠s (trans r≡t (sym s≡t)))
     g₁↔cSub : g₁ ↔ cSub
     g₁↔cSub = record { isProj = isProj-g₁ }
-    c'Sub : ∃[ c'Sub ] cSub - act →c c'Sub
-    c'Sub = soundness g₁↔cSub gReduce
-{--
-soundness
-    {n = n}
-    {act = .(Action.AMsg p q p≠q l)}
-    {c = c}
-    {g = g@(Global.MsgSingle p q p≠q l g')}
-    {g' = g'}
-    assoc
-    _-_→g_.GPrefix
-    with p ≟ p
-... | does Relation.Nullary.because proof with project g p
-... | Local.End = {!   !}
-... | Local.Send x x₁ res = {!   !}
-... | Local.Recv x x₁ res = {!   !}
-soundness {n = n} {act = .(Action.AMsg _ _ _ _)} {c = c} {g = .(Global.MsgSingle _ _ _ _ _)} assoc (_-_→g_.GCont gReduce x x₁ x₂ x₃) = {!   !}
---}
+    ∃c'Sub : ∃[ c'Sub ] cSub - act →c c'Sub
+    ∃c'Sub = soundness g₁↔cSub gReduce
+    c'Sub : Configuration n
+    c'Sub = proj₁ ∃c'Sub
+    cSubReduce : cSub - act →c c'Sub
+    cSubReduce = proj₂ ∃c'Sub
+    c'' : Configuration n
+    c'' = c [ r ]≔ (Local.Send s l' (lookup c'Sub r))
+    c' : Configuration n
+    c' = c'' [ s ]≔ (Local.Recv r l' (lookup c'Sub s))
+    postulate cReduce : c - act →c c'
