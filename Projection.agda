@@ -109,7 +109,7 @@ soundness
     lookup-cSub-t t r≠t s≠t rewrite lookup-t-2 t s≠t
                             rewrite lookup-t-1 t r≠t
                             rewrite sym (proj-t r s t g₁ r≠t s≠t) = _↔_.isProj assoc t
-    isProj-g₁ : ∀( t : Fin n ) -> lookup cSub t ≡ project g₁ t
+    isProj-g₁ : ∀(t : Fin n) -> lookup cSub t ≡ project g₁ t
     isProj-g₁ t with r ≟ t   | s ≟ t
     ...            | yes r≡t | no _    rewrite (sym r≡t) = lookup-cSub-r
     ...            | no _    | yes s≡t rewrite (sym s≡t) = lookup-cSub-s
@@ -123,9 +123,29 @@ soundness
     c'Sub = proj₁ ∃c'Sub
     cSubReduce : cSub - act →c c'Sub
     cSubReduce = proj₁ (proj₂ ∃c'Sub)
+    assocSub : g₂ ↔ c'Sub
+    assocSub = proj₂ (proj₂ ∃c'Sub)
+    lr' : Local n
+    lr' = Local.Send s l' (lookup c'Sub r)
     c'' : Configuration n
-    c'' = c [ r ]≔ (Local.Send s l' (lookup c'Sub r))
+    c'' = c'Sub [ r ]≔ lr'
+    ls' : Local n
+    ls' = (Local.Recv r l' (lookup c'Sub s))
     c' : Configuration n
-    c' = c'' [ s ]≔ (Local.Recv r l' (lookup c'Sub s))
+    c' = c'' [ s ]≔ ls'
+    isProj-g' : ∀(t : Fin n) -> lookup c' t ≡ project g' t
+    isProj-g' t with r ≟ t   | s ≟ t
+    ...            | yes r≡t | no _    rewrite (sym r≡t)
+                                       rewrite lookup∘updateAt′ r s {const ls'} r≠s c''
+                                       rewrite lookup∘updateAt r {const lr'} c'Sub
+                                       rewrite _↔_.isProj assocSub r = refl
+    ...            | no _    | yes s≡t rewrite (sym s≡t)
+                                       rewrite lookup∘updateAt s {const ls'} c''
+                                       rewrite _↔_.isProj assocSub s = refl
+    ...            | no r≠t  | no s≠t  rewrite lookup∘updateAt′ t s {const ls'} (λ t≡s -> s≠t (sym t≡s)) c''
+                                       rewrite lookup∘updateAt′ t r {const lr'} (λ t≡r -> r≠t (sym t≡r)) c'Sub
+                                       rewrite _↔_.isProj assocSub t = refl
+    ...            | yes r≡t | yes s≡t = ⊥-elim (r≠s (trans r≡t (sym s≡t)))
+    assoc' : g' ↔ c'
+    assoc' = record { isProj = isProj-g' }
     postulate cReduce : c - act →c c'
-    postulate assoc' : Global.MsgSingle r s r≠s l' g₂ ↔ c'
