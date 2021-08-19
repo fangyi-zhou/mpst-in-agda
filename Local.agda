@@ -1,10 +1,7 @@
 open import Relation.Binary.PropositionalEquality using (subst; _≡_)
 open import Relation.Nullary using (¬_)
-open import Data.Bool using (true)
 open import Data.Fin using (Fin)
-open import Data.Maybe using (just)
 open import Data.Nat using (ℕ)
-open import Data.Nat.Properties using (<-strictTotalOrder)
 open import Data.Vec using (Vec; lookup; _[_]≔_)
 
 open import Common using (Label; Action; AMsg)

@@ -2,8 +2,6 @@ open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality using (_≡_)
 open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ)
-open import Data.Nat.Properties using (<-strictTotalOrder)
-import Data.Tree.AVL.Sets <-strictTotalOrder as Sets
 
 open import Common using (Label; Action; AMsg)
 

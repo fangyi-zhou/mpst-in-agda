@@ -7,7 +7,6 @@ open import Function.Base using (const)
 open import Relation.Nullary using (yes; no; ¬_)
 open import Relation.Binary.PropositionalEquality using (sym; trans; _≡_; refl; cong; _≢_)
 open import Data.Product using (∃-syntax; _,_; proj₁; proj₂; _×_)
-open import Level using (Level)
 
 open import Common using (Label; Action)
 open import Global using (Global; _-_→g_)
