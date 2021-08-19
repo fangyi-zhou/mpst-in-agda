@@ -1,3 +1,4 @@
+open import Level using (Level)
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; _≟_)
 open import Data.Nat using (ℕ)
@@ -20,10 +21,16 @@ project (Global.MsgSingle p q p≠q l g) r with p ≟ r | q ≟ r
 ...                                     | no _    | no _    = project g r
 ...                                     | yes p≡r | yes q≡r = ⊥-elim (p≠q (trans p≡r (sym q≡r)))
 
-¬≡-flip : ∀ { A B : Set } -> (A ≢ B) -> (B ≢ A)
-¬≡-flip a≢b = λ b≡a → a≢b (sym b≡a)
+¬≡-flip : ∀{l} { A : Set l } { x y : A } -> (x ≢ y) -> (y ≢ x)
+¬≡-flip x≢y = λ y≡x → x≢y (sym y≡x)
 
-proj-t : ∀{ n : ℕ } -> (r s t : Fin n) -> ∀{r≠s l} -> (g' : Global n) -> r ≢ t -> s ≢ t -> project (Global.MsgSingle r s r≠s l g') t ≡ project g' t
+proj-t : ∀{ n : ℕ }
+      -> (r s t : Fin n)
+      -> ∀{ r≠s l }
+      -> (g' : Global n)
+      -> r ≢ t
+      -> s ≢ t
+      -> project (Global.MsgSingle r s r≠s l g') t ≡ project g' t
 proj-t r s t _ r≠t s≠t with  r ≟ t   | s ≟ t
 ...                        | yes r≡t | _       = ⊥-elim (r≠t r≡t)
 ...                        | _       | yes s≡t = ⊥-elim (s≠t s≡t)
@@ -71,8 +78,8 @@ soundness
     ...            | yes p≡r | no  _   rewrite (sym p≡r)
                                        rewrite lookup∘updateAt′ p q {const (project g' q)} p≠q c'' = lookup∘updateAt p c
     ...            | no _    | yes q≡r rewrite (sym q≡r) = lookup∘updateAt q c''
-    ...            | no p≠r  | no  q≠r rewrite lookup∘updateAt′ r q {const (project g' q)} (λ r≡q -> q≠r (sym r≡q)) c''
-                                       rewrite lookup∘updateAt′ r p {const (project g' p)} (λ r≡p -> p≠r (sym r≡p)) c
+    ...            | no p≠r  | no  q≠r rewrite lookup∘updateAt′ r q {const (project g' q)} (¬≡-flip q≠r) c''
+                                       rewrite lookup∘updateAt′ r p {const (project g' p)} (¬≡-flip p≠r) c
                                        rewrite _↔_.isProj assoc r = proj-t p q r g' p≠r q≠r
     assoc' : g' ↔ c'
     assoc' = record { isProj = isProj-g' }
@@ -101,9 +108,9 @@ soundness
     lookup-cSub-s : lookup cSub s ≡ project g₁ s
     lookup-cSub-s rewrite lookup-s = refl
     lookup-t-1 : (t : Fin n) -> r ≢ t -> lookup cSub' t ≡ lookup c t
-    lookup-t-1 t r≠t = lookup∘updateAt′ t r (λ t≡r -> r≠t (sym t≡r)) c
+    lookup-t-1 t r≠t = lookup∘updateAt′ t r (¬≡-flip r≠t) c
     lookup-t-2 : (t : Fin n) -> s ≢ t -> lookup cSub t ≡ lookup cSub' t
-    lookup-t-2 t s≠t = lookup∘updateAt′ t s (λ t≡s -> s≠t (sym t≡s)) cSub'
+    lookup-t-2 t s≠t = lookup∘updateAt′ t s (¬≡-flip s≠t) cSub'
     lookup-cSub-t : (t : Fin n) -> r ≢ t -> s ≢ t -> lookup cSub t ≡ project g₁ t
     lookup-cSub-t t r≠t s≠t rewrite lookup-t-2 t s≠t
                             rewrite lookup-t-1 t r≠t
@@ -141,8 +148,8 @@ soundness
     ...            | no _    | yes s≡t rewrite (sym s≡t)
                                        rewrite lookup∘updateAt s {const ls'} c''
                                        rewrite _↔_.isProj assocSub s = refl
-    ...            | no r≠t  | no s≠t  rewrite lookup∘updateAt′ t s {const ls'} (λ t≡s -> s≠t (sym t≡s)) c''
-                                       rewrite lookup∘updateAt′ t r {const lr'} (λ t≡r -> r≠t (sym t≡r)) c'Sub
+    ...            | no r≠t  | no s≠t  rewrite lookup∘updateAt′ t s {const ls'} (¬≡-flip s≠t) c''
+                                       rewrite lookup∘updateAt′ t r {const lr'} (¬≡-flip r≠t) c'Sub
                                        rewrite _↔_.isProj assocSub t = refl
     ...            | yes r≡t | yes s≡t = ⊥-elim (r≠s (trans r≡t (sym s≡t)))
     assoc' : g' ↔ c'
