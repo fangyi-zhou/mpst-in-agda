@@ -84,7 +84,7 @@ cEnd : Configuration n
 cEnd = End ∷ End ∷ End ∷ End ∷ []
 
 c₁→cEnd : c₁ - p→q →c cEnd
-c₁→cEnd = CComm c₁ (λ ()) g₁-proj-p→end g₁-proj-q→end
+c₁→cEnd = CComm c₁ (λ ()) refl refl refl g₁-proj-p→end g₁-proj-q→end
 
 g₁↔c₁ : g₁ ↔ c₁
 g₁↔c₁ = record { isProj = refls }

@@ -52,7 +52,7 @@ soundness
     {g' = .g'}
     assoc
     _-_→g_.GPrefix
-    = c' , (CComm c p≠q lpReduce lqReduce , assoc')
+    = c' , (CComm c p≠q refl refl refl lpReduce lqReduce , assoc')
   where
     c'' : Configuration n
     c'' = c [ p ]≔ (project g' p)
@@ -145,4 +145,17 @@ soundness
     ...            | yes r≡t | yes s≡t = ⊥-elim (r≠s (trans r≡t (sym s≡t)))
     assoc' : g' ↔ c'
     assoc' = record { isProj = isProj-g' }
-    postulate cReduce : c - act →c c'
+    cReduce : c - act →c c'
+    cReduce with cSubReduce
+    ... | CComm {lp = lp} {lp' = lp'} {lq = lq} {lq' = lq'} .cSub .p≠q lp≡cSub[p] lq≡cSub[q] cSub→cSub' lpReduce lqReduce =
+            CComm {n} {p} {q} {l} {lp} {lp'} {lq} {lq'} {c'} c p≠q lp≡c[p] lq≡c[q] c→c' lpReduce lqReduce
+      where
+        lp≡c[p] : lp ≡ lookup c p
+        lp≡c[p] rewrite lp≡cSub[p]
+                rewrite lookup∘update′ p≠s cSub' (project g₁ s)
+                rewrite lookup∘update′ p≠r c (project g₁ r) = refl
+        lq≡c[q] : lq ≡ lookup c q
+        lq≡c[q] rewrite lq≡cSub[q]
+                rewrite lookup∘update′ q≠s cSub' (project g₁ s)
+                rewrite lookup∘update′ q≠r c (project g₁ r) = refl
+        postulate c→c' : c' ≡ ((c [ p ]≔ lp') [ q ]≔ lq')

@@ -24,9 +24,12 @@ data _-_→l_ {n : ℕ} : Local n -> Action n -> Local n -> Set where
              -> Recv q lbl lt' - (AMsg q p q≠p lbl) →l lt'
 
 data _-_→c_ {n : ℕ} : Configuration n -> Action n -> Configuration n -> Set where
-    CComm : ∀{p q l lp' lq'}
+    CComm : ∀{p q l lp lp' lq lq' c'}
              -> (c : Configuration n)
              -> (p≠q : ¬ (p ≡ q))
-             -> lookup c p - (AMsg p q p≠q l) →l lp'
-             -> lookup c q - (AMsg p q p≠q l) →l lq'
-             -> c - (AMsg p q p≠q l) →c ((c [ p ]≔ lp') [ q ]≔ lq')
+             -> (lp ≡ lookup c p)
+             -> (lq ≡ lookup c q)
+             -> (c' ≡ (c [ p ]≔ lp') [ q ]≔ lq')
+             -> lp - (AMsg p q p≠q l) →l lp'
+             -> lq - (AMsg p q p≠q l) →l lq'
+             -> c - (AMsg p q p≠q l) →c  c'
