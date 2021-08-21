@@ -3,11 +3,12 @@ open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; _≟_)
 open import Data.Nat using (ℕ)
 open import Data.Vec using (lookup; _[_]≔_)
-open import Data.Vec.Properties using (lookup∘update; lookup∘update′)
+open import Data.Vec.Properties using (lookup∘update; lookup∘update′; []≔-commutes; []≔-idempotent; []≔-lookup)
 open import Function.Base using (const)
 open import Relation.Nullary using (yes; no; ¬_)
-open import Relation.Binary.PropositionalEquality using (sym; trans; _≡_; refl; cong; _≢_)
+open import Relation.Binary.PropositionalEquality using (sym; trans; _≡_; refl; cong; _≢_; module ≡-Reasoning)
 open import Data.Product using (∃-syntax; _,_; proj₁; proj₂; _×_)
+open ≡-Reasoning
 
 open import Common using (Label; Action)
 open import Global using (Global; _-_→g_)
@@ -24,17 +25,39 @@ project (Global.MsgSingle p q p≠q l g) r with p ≟ r | q ≟ r
 ¬≡-flip : ∀{l} { A : Set l } { x y : A } -> (x ≢ y) -> (y ≢ x)
 ¬≡-flip x≢y = λ y≡x → x≢y (sym y≡x)
 
-proj-t : ∀{ n : ℕ }
-      -> (r s t : Fin n)
-      -> ∀{ r≠s l }
-      -> (g' : Global n)
-      -> r ≢ t
-      -> s ≢ t
-      -> project (Global.MsgSingle r s r≠s l g') t ≡ project g' t
-proj-t r s t _ r≠t s≠t with  r ≟ t   | s ≟ t
-...                        | yes r≡t | _       = ⊥-elim (r≠t r≡t)
-...                        | _       | yes s≡t = ⊥-elim (s≠t s≡t)
-...                        | no _    | no _    = refl
+proj-prefix-other : ∀{ n : ℕ }
+                 -> (r s t : Fin n)
+                 -> ∀{ r≠s l }
+                 -> (g' : Global n)
+                 -> r ≢ t
+                 -> s ≢ t
+                 -> project (Global.MsgSingle r s r≠s l g') t ≡ project g' t
+proj-prefix-other r s t _ r≠t s≠t with  r ≟ t   | s ≟ t
+...                                   | yes r≡t | _       = ⊥-elim (r≠t r≡t)
+...                                   | _       | yes s≡t = ⊥-elim (s≠t s≡t)
+...                                   | no _    | no _    = refl
+
+proj-prefix-send : ∀{ n : ℕ }
+                 -> (r s : Fin n)
+                 -> ∀{ r≠s l }
+                 -> (g' : Global n)
+                 -> s ≢ r
+                 -> project (Global.MsgSingle r s r≠s l g') r ≡ Local.Send s l (project g' r)
+proj-prefix-send r s _ s≠r with  r ≟ r   | s ≟ r
+...                            | yes _   | no _    = refl
+...                            | _       | yes s≡r = ⊥-elim (s≠r s≡r)
+...                            | no r≠r  | no _    = ⊥-elim (r≠r refl)
+
+proj-prefix-recv : ∀{ n : ℕ }
+                 -> (r s : Fin n)
+                 -> ∀{ r≠s l }
+                 -> (g' : Global n)
+                 -> s ≢ r
+                 -> project (Global.MsgSingle r s r≠s l g') s ≡ Local.Recv r l (project g' s)
+proj-prefix-recv r s _ s≠r with  r ≟ s   | s ≟ s
+...                            | no _    | yes _   = refl
+...                            | yes r≡s | _       = ⊥-elim (s≠r (sym r≡s))
+...                            | _       | no s≠s  = ⊥-elim (s≠s refl)
 
 record _↔_ { n : ℕ } (g : Global n) (c : Configuration n) : Set where
     field
@@ -80,7 +103,7 @@ soundness
     ...            | no _    | yes q≡r rewrite (sym q≡r) = lookup∘update q c'' (project g' q)
     ...            | no p≠r  | no  q≠r rewrite lookup∘update′ (¬≡-flip q≠r) c'' (project g' q)
                                        rewrite lookup∘update′ (¬≡-flip p≠r) c   (project g' p)
-                                       rewrite _↔_.isProj assoc r = proj-t p q r g' p≠r q≠r
+                                       rewrite _↔_.isProj assoc r = proj-prefix-other p q r g' p≠r q≠r
     assoc' : g' ↔ c'
     assoc' = record { isProj = isProj-g' }
 soundness
@@ -105,7 +128,7 @@ soundness
     lookup-cSub-t : (t : Fin n) -> r ≢ t -> s ≢ t -> lookup cSub t ≡ project g₁ t
     lookup-cSub-t t r≠t s≠t rewrite lookup∘update′ (¬≡-flip s≠t) cSub' (project g₁ s)
                             rewrite lookup∘update′ (¬≡-flip r≠t) c     (project g₁ r)
-                            rewrite sym (proj-t r s t g₁ r≠t s≠t) = _↔_.isProj assoc t
+                            rewrite sym (proj-prefix-other r s t g₁ r≠t s≠t) = _↔_.isProj assoc t
     isProj-g₁ : ∀(t : Fin n) -> lookup cSub t ≡ project g₁ t
     isProj-g₁ t with r ≟ t   | s ≟ t
     ...            | yes r≡t | no _    rewrite (sym r≡t) = lookup-cSub-r
@@ -127,7 +150,7 @@ soundness
     c'' : Configuration n
     c'' = c'Sub [ r ]≔ lr'
     ls' : Local n
-    ls' = (Local.Recv r l' (lookup c'Sub s))
+    ls' = Local.Recv r l' (lookup c'Sub s)
     c' : Configuration n
     c' = c'' [ s ]≔ ls'
     isProj-g' : ∀(t : Fin n) -> lookup c' t ≡ project g' t
@@ -147,7 +170,7 @@ soundness
     assoc' = record { isProj = isProj-g' }
     cReduce : c - act →c c'
     cReduce with cSubReduce
-    ... | CComm {lp = lp} {lp' = lp'} {lq = lq} {lq' = lq'} .cSub .p≠q lp≡cSub[p] lq≡cSub[q] cSub→cSub' lpReduce lqReduce =
+    ... | CComm {lp = lp} {lp' = lp'} {lq = lq} {lq' = lq'} .cSub .p≠q lp≡cSub[p] lq≡cSub[q] cSub→c'Sub lpReduce lqReduce =
             CComm {n} {p} {q} {l} {lp} {lp'} {lq} {lq'} {c'} c p≠q lp≡c[p] lq≡c[q] c→c' lpReduce lqReduce
       where
         lp≡c[p] : lp ≡ lookup c p
@@ -158,4 +181,67 @@ soundness
         lq≡c[q] rewrite lq≡cSub[q]
                 rewrite lookup∘update′ q≠s cSub' (project g₁ s)
                 rewrite lookup∘update′ q≠r c (project g₁ r) = refl
-        postulate c→c' : c' ≡ ((c [ p ]≔ lp') [ q ]≔ lq')
+        lr'≡c[r] : lr' ≡ lookup c r
+        lr'≡c[r] = begin
+                     Local.Send s l' (lookup c'Sub r)
+                   ≡⟨ cong (λ c'Sub -> Local.Send s l' (lookup c'Sub r)) cSub→c'Sub ⟩
+                     Local.Send s l' (lookup ((cSub [ p ]≔ lp') [ q ]≔ lq') r)
+                   ≡⟨ cong (λ ls'' -> Local.Send s l' ls'') (lookup∘update′ (¬≡-flip q≠r) (cSub [ p ]≔ lp') lq') ⟩
+                     Local.Send s l' (lookup (cSub [ p ]≔ lp') r)
+                   ≡⟨ cong (λ ls'' -> Local.Send s l' ls'') (lookup∘update′ (¬≡-flip p≠r) cSub lp') ⟩
+                     Local.Send s l' (lookup cSub r)
+                   ≡⟨ cong (λ ls'' -> Local.Send s l' ls'') (isProj-g₁ r) ⟩
+                     Local.Send s l' (project g₁ r)
+                   ≡˘⟨ proj-prefix-send r s g₁ (¬≡-flip r≠s) ⟩
+                     project g r
+                   ≡⟨ sym (_↔_.isProj assoc r) ⟩
+                     lookup c r
+                   ∎
+        ls'≡c[s] : ls' ≡ lookup c s
+        ls'≡c[s] = begin
+                     Local.Recv r l' (lookup c'Sub s)
+                   ≡⟨ cong (λ c'Sub -> Local.Recv r l' (lookup c'Sub s)) cSub→c'Sub ⟩
+                     Local.Recv r l' (lookup ((cSub [ p ]≔ lp') [ q ]≔ lq') s)
+                   ≡⟨ cong (λ ls'' -> Local.Recv r l' ls'') (lookup∘update′ (¬≡-flip q≠s) (cSub [ p ]≔ lp') lq') ⟩
+                     Local.Recv r l' (lookup (cSub [ p ]≔ lp') s)
+                   ≡⟨ cong (λ ls'' -> Local.Recv r l' ls'') (lookup∘update′ (¬≡-flip p≠s) cSub lp') ⟩
+                     Local.Recv r l' (lookup cSub s)
+                   ≡⟨ cong (λ ls'' -> Local.Recv r l' ls'') (isProj-g₁ s) ⟩
+                     Local.Recv r l' (project g₁ s)
+                   ≡˘⟨ proj-prefix-recv r s g₁ (¬≡-flip r≠s) ⟩
+                     project g s
+                   ≡⟨ sym (_↔_.isProj assoc s) ⟩
+                     lookup c s
+                   ∎
+        c→c' : ((c'Sub [ r ]≔ lr') [ s ]≔ ls') ≡ ((c [ p ]≔ lp') [ q ]≔ lq')
+        c→c' = begin
+                 (c'Sub [ r ]≔ lr') [ s ]≔ ls'
+               ≡⟨ cong (λ v -> (v [ r ]≔ lr') [ s ]≔ ls') cSub→c'Sub ⟩
+                 (((cSub [ p ]≔ lp') [ q ]≔ lq') [ r ]≔ lr') [ s ]≔ ls'
+               ≡⟨⟩
+                 (((((c [ r ]≔ project g₁ r) [ s ]≔ project g₁ s) [ p ]≔ lp') [ q ]≔ lq') [ r ]≔ lr') [ s ]≔ ls'
+               ≡⟨ []≔-commutes ((((c [ r ]≔ project g₁ r) [ s ]≔ project g₁ s) [ p ]≔ lp') [ q ]≔ lq') r s r≠s ⟩
+                 (((((c [ r ]≔ project g₁ r) [ s ]≔ project g₁ s) [ p ]≔ lp') [ q ]≔ lq') [ s ]≔ ls') [ r ]≔ lr'
+               ≡⟨ cong (λ v -> v [ r ]≔ lr') ([]≔-commutes (((c [ r ]≔ project g₁ r) [ s ]≔ project g₁ s) [ p ]≔ lp') q s q≠s) ⟩
+                 (((((c [ r ]≔ project g₁ r) [ s ]≔ project g₁ s) [ p ]≔ lp') [ s ]≔ ls') [ q ]≔ lq') [ r ]≔ lr'
+               ≡⟨ cong (λ v -> (v [ q ]≔ lq') [ r ]≔ lr') ([]≔-commutes ((c [ r ]≔ project g₁ r) [ s ]≔ project g₁ s) p s p≠s) ⟩
+                 (((((c [ r ]≔ project g₁ r) [ s ]≔ project g₁ s) [ s ]≔ ls') [ p ]≔ lp') [ q ]≔ lq') [ r ]≔ lr'
+               ≡⟨ cong (λ v -> ((v [ p ]≔ lp') [ q ]≔ lq') [ r ]≔ lr') ([]≔-idempotent (c [ r ]≔ project g₁ r) s) ⟩
+                 ((((c [ r ]≔ project g₁ r) [ s ]≔ ls') [ p ]≔ lp') [ q ]≔ lq') [ r ]≔ lr'
+               ≡⟨ []≔-commutes (((c [ r ]≔ project g₁ r) [ s ]≔ ls') [ p ]≔ lp') q r q≠r ⟩
+                 ((((c [ r ]≔ project g₁ r) [ s ]≔ ls') [ p ]≔ lp') [ r ]≔ lr') [ q ]≔ lq'
+               ≡⟨ cong (λ v -> v [ q ]≔ lq') ([]≔-commutes ((c [ r ]≔ project g₁ r) [ s ]≔ ls') p r p≠r) ⟩
+                 ((((c [ r ]≔ project g₁ r) [ s ]≔ ls') [ r ]≔ lr') [ p ]≔ lp') [ q ]≔ lq'
+               ≡⟨ cong (λ v -> (v [ p ]≔ lp') [ q ]≔ lq') ([]≔-commutes (c [ r ]≔ project g₁ r) s r (¬≡-flip r≠s)) ⟩
+                 ((((c [ r ]≔ project g₁ r) [ r ]≔ lr') [ s ]≔ ls') [ p ]≔ lp') [ q ]≔ lq'
+               ≡⟨ cong (λ v -> ((v [ s ]≔ ls') [ p ]≔ lp') [ q ]≔ lq') ([]≔-idempotent c r) ⟩
+                 (((c [ r ]≔ lr') [ s ]≔ ls') [ p ]≔ lp') [ q ]≔ lq'
+               ≡⟨ cong (λ c[r] -> (((c [ r ]≔ c[r]) [ s ]≔ ls') [ p ]≔ lp') [ q ]≔ lq') lr'≡c[r] ⟩
+                 (((c [ r ]≔ lookup c r) [ s ]≔ ls') [ p ]≔ lp') [ q ]≔ lq'
+               ≡⟨ cong (λ v -> ((v [ s ]≔ ls') [ p ]≔ lp') [ q ]≔ lq') ([]≔-lookup c r) ⟩
+                 ((c [ s ]≔ ls') [ p ]≔ lp') [ q ]≔ lq'
+               ≡⟨ cong (λ c[s] -> ((c [ s ]≔ c[s]) [ p ]≔ lp') [ q ]≔ lq') ls'≡c[s] ⟩
+                 ((c [ s ]≔ lookup c s) [ p ]≔ lp') [ q ]≔ lq'
+               ≡⟨ cong (λ v -> (v [ p ]≔ lp') [ q ]≔ lq') ([]≔-lookup c s) ⟩
+                 (c [ p ]≔ lp') [ q ]≔ lq'
+               ∎
