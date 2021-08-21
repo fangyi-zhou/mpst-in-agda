@@ -39,24 +39,24 @@ proj-prefix-other r s t _ r≠t s≠t with  r ≟ t   | s ≟ t
 
 proj-prefix-send : ∀{ n : ℕ }
                  -> (r s : Fin n)
-                 -> ∀{ r≠s l }
+                 -> ∀{ l }
                  -> (g' : Global n)
-                 -> s ≢ r
+                 -> (r≠s : r ≢ s)
                  -> project (Global.MsgSingle r s r≠s l g') r ≡ Local.Send s l (project g' r)
-proj-prefix-send r s _ s≠r with  r ≟ r   | s ≟ r
+proj-prefix-send r s _ r≠s with  r ≟ r   | s ≟ r
 ...                            | yes _   | no _    = refl
-...                            | _       | yes s≡r = ⊥-elim (s≠r s≡r)
+...                            | _       | yes s≡r = ⊥-elim (r≠s (sym s≡r))
 ...                            | no r≠r  | no _    = ⊥-elim (r≠r refl)
 
 proj-prefix-recv : ∀{ n : ℕ }
                  -> (r s : Fin n)
-                 -> ∀{ r≠s l }
+                 -> ∀{ l }
                  -> (g' : Global n)
-                 -> s ≢ r
+                 -> (r≠s : r ≢ s)
                  -> project (Global.MsgSingle r s r≠s l g') s ≡ Local.Recv r l (project g' s)
-proj-prefix-recv r s _ s≠r with  r ≟ s   | s ≟ s
+proj-prefix-recv r s _ r≠s with  r ≟ s   | s ≟ s
 ...                            | no _    | yes _   = refl
-...                            | yes r≡s | _       = ⊥-elim (s≠r (sym r≡s))
+...                            | yes r≡s | _       = ⊥-elim (r≠s r≡s)
 ...                            | _       | no s≠s  = ⊥-elim (s≠s refl)
 
 record _↔_ { n : ℕ } (g : Global n) (c : Configuration n) : Set where
@@ -82,17 +82,17 @@ soundness
     c' : Configuration n
     c' = c'' [ q ]≔ (project g' q)
     lpReduce' : project g p - act →l (project g' p)
-    lpReduce' with project g p | p ≟ p   | q ≟ p
-    ...          | _           | yes _   | no  _   = _-_→l_.LSend p p≠q
-    ...          | _           | yes _   | yes q=p = ⊥-elim (p≠q (sym q=p))
-    ...          | _           | no  p≠p | _       = ⊥-elim (p≠p refl)
+    lpReduce' with p ≟ p   | q ≟ p
+    ...          | yes _   | no  _   = _-_→l_.LSend p p≠q
+    ...          | yes _   | yes q=p = ⊥-elim (p≠q (sym q=p))
+    ...          | no  p≠p | _       = ⊥-elim (p≠p refl)
     lpReduce : lookup c p - act →l (project g' p)
     lpReduce rewrite _↔_.isProj assoc p = lpReduce'
     lqReduce' : project g q - act →l (project g' q)
-    lqReduce' with project g q | q ≟ q   | p ≟ q
-    ...          | _           | yes _   | no  _   = _-_→l_.LRecv q p≠q
-    ...          | _           | yes _   | yes p=q = ⊥-elim (p≠q p=q)
-    ...          | _           | no  q≠q | _       = ⊥-elim (q≠q refl)
+    lqReduce' with q ≟ q   | p ≟ q
+    ...          | yes _   | no  _   = _-_→l_.LRecv q p≠q
+    ...          | yes _   | yes p=q = ⊥-elim (p≠q p=q)
+    ...          | no  q≠q | _       = ⊥-elim (q≠q refl)
     lqReduce : lookup c q - act →l (project g' q)
     lqReduce rewrite _↔_.isProj assoc q = lqReduce'
     isProj-g' : (r : Fin n) -> lookup c' r ≡ project g' r
@@ -192,7 +192,7 @@ soundness
                      Local.Send s l' (lookup cSub r)
                    ≡⟨ cong (λ ls'' -> Local.Send s l' ls'') (isProj-g₁ r) ⟩
                      Local.Send s l' (project g₁ r)
-                   ≡˘⟨ proj-prefix-send r s g₁ (¬≡-flip r≠s) ⟩
+                   ≡˘⟨ proj-prefix-send r s g₁ r≠s ⟩
                      project g r
                    ≡⟨ sym (_↔_.isProj assoc r) ⟩
                      lookup c r
@@ -208,7 +208,7 @@ soundness
                      Local.Recv r l' (lookup cSub s)
                    ≡⟨ cong (λ ls'' -> Local.Recv r l' ls'') (isProj-g₁ s) ⟩
                      Local.Recv r l' (project g₁ s)
-                   ≡˘⟨ proj-prefix-recv r s g₁ (¬≡-flip r≠s) ⟩
+                   ≡˘⟨ proj-prefix-recv r s g₁ r≠s ⟩
                      project g s
                    ≡⟨ sym (_↔_.isProj assoc s) ⟩
                      lookup c s
