@@ -30,61 +30,61 @@ l' : Label
 l' = 1
 
 g₁ : Global n
-g₁ = MsgSingle p q (λ ()) l End
+g₁ = msgSingle p q (λ ()) l endG
 
 lp : Local n
-lp = Send q l End
+lp = sendSingle q l endL
 
 g₁-proj-p-is-lp : project g₁ p ≡ lp
 g₁-proj-p-is-lp = refl
 
 lq : Local n
-lq = Recv p l End
+lq = recvSingle p l endL
 
 g₁-proj-q-is-lq : project g₁ q ≡ lq
 g₁-proj-q-is-lq = refl
 
 p→q : Action n
-p→q = AMsg p q (λ ()) l
+p→q = action p q (λ ()) l
 
 r→s : Action n
-r→s = AMsg r s (λ ()) l'
+r→s = action r s (λ ()) l'
 
 g₂ : Global n
-g₂ = MsgSingle r s (λ ()) l' g₁
+g₂ = msgSingle r s (λ ()) l' g₁
 
 g₂' : Global n
-g₂' = MsgSingle r s (λ ()) l' End
+g₂' = msgSingle r s (λ ()) l' endG
 
-g₁→end : g₁ - p→q →g End
-g₁→end = GPrefix
+g₁→end : g₁ - p→q →g endG
+g₁→end = →g-prefix
 
 g₂→g₁ : g₂ - r→s →g g₁
-g₂→g₁ = GPrefix
+g₂→g₁ = →g-prefix
 
 g₂→g₂' : g₂ - p→q →g g₂'
-g₂→g₂' = GCont g₁→end (λ ()) (λ ()) (λ ()) (λ ())
+g₂→g₂' = →g-cont g₁→end (λ ()) (λ ()) (λ ()) (λ ())
 
-g₁-proj-p→end : (project g₁ p) - p→q →l End
-g₁-proj-p→end = LSend p λ ()
+g₁-proj-p→end : (project g₁ p) - p→q →l endL
+g₁-proj-p→end = →l-send p λ ()
 
-g₁-proj-q→end : (project g₁ q) - p→q →l End
-g₁-proj-q→end = LRecv q λ ()
+g₁-proj-q→end : (project g₁ q) - p→q →l endL
+g₁-proj-q→end = →l-recv q λ ()
 
 g₂-proj-p→g₂'-proj-p : (project g₂ p) - p→q →l (project g₂' p)
-g₂-proj-p→g₂'-proj-p = LSend p λ ()
+g₂-proj-p→g₂'-proj-p = →l-send p λ ()
 
 g₂-proj-q→g₂'-proj-q : (project g₂ q) - p→q →l (project g₂' q)
-g₂-proj-q→g₂'-proj-q = LRecv q λ ()
+g₂-proj-q→g₂'-proj-q = →l-recv q λ ()
 
 c₁ : Configuration n
-c₁ = lp ∷ lq ∷ End ∷ End ∷ []
+c₁ = lp ∷ lq ∷ endL ∷ endL ∷ []
 
 cEnd : Configuration n
-cEnd = End ∷ End ∷ End ∷ End ∷ []
+cEnd = endL ∷ endL ∷ endL ∷ endL ∷ []
 
 c₁→cEnd : c₁ - p→q →c cEnd
-c₁→cEnd = CComm c₁ (λ ()) refl refl refl g₁-proj-p→end g₁-proj-q→end
+c₁→cEnd = →c-comm c₁ (λ ()) refl refl refl g₁-proj-p→end g₁-proj-q→end
 
 g₁↔c₁ : g₁ ↔ c₁
 g₁↔c₁ = record { isProj = refls }

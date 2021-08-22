@@ -9,4 +9,4 @@ Label : Set
 Label = ℕ
 
 data Action (n : ℕ) : Set where
-  AMsg : (p q : Fin n) -> ¬ (p ≡ q) -> Label -> Action n
+  action : (p q : Fin n) -> ¬ (p ≡ q) -> Label -> Action n
