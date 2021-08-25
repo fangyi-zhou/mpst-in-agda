@@ -12,7 +12,7 @@ completeness :
     -> g ↔ c
     -> c - act →c c'
     -> ∃[ g' ] ((g - act →g g') × (g' ↔ c'))
-completeness {n} {act = action .p .p .p≠q .l} {c} assoc (→c-comm {p} {.p} {l} .c p≠q lp≡c[p] lq≡c[q] c→c' (→l-send .p .p≠q) (→l-send .p .p≠q)) = ⊥-elim (p≠q refl)
-completeness {n} {act = action .p .q .p≠q .l} {c} assoc (→c-comm {p} {q} {l} .c p≠q lp≡c[p] lq≡c[q] c→c' (→l-send .p .p≠q) (→l-recv .q .p≠q)) = ?
-completeness {n} {act = action .p .p .p≠q .l} {c} assoc (→c-comm {p} {.p} {l} .c p≠q lp≡c[p] lq≡c[q] c→c' (→l-recv .p .p≠q) (→l-send .p .p≠q)) = ⊥-elim (p≠q refl)
-completeness {n} {act = action .p .p .p≠q .l} {c} assoc (→c-comm {p} {.p} {l} .c p≠q lp≡c[p] lq≡c[q] c→c' (→l-recv .p .p≠q) (→l-recv .p .p≠q)) = ⊥-elim (p≠q refl)
+completeness assoc (→c-comm c p≠q lp≡c[p] lq≡c[q] c→c' (→l-send p .p≠q) (→l-send .p .p≠q)) = ⊥-elim (p≠q refl)
+completeness assoc (→c-comm c p≠q lp≡c[p] lq≡c[q] c→c' (→l-recv p .p≠q) (→l-send .p .p≠q)) = ⊥-elim (p≠q refl)
+completeness assoc (→c-comm c p≠q lp≡c[p] lq≡c[q] c→c' (→l-recv p .p≠q) (→l-recv .p .p≠q)) = ⊥-elim (p≠q refl)
+completeness assoc (→c-comm {p} {q} {l} c p≠q lp≡c[p] lq≡c[q] c→c' (→l-send .p .p≠q) (→l-recv .q .p≠q)) = ?
