@@ -2,6 +2,7 @@ open import Relation.Binary.PropositionalEquality using (subst; _≡_)
 open import Relation.Nullary using (¬_)
 open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ)
+open import Data.Product using (_×_; _,_)
 open import Data.Vec using (Vec; lookup; _[_]≔_)
 
 open import Common using (Label; Action; action)
@@ -13,17 +14,17 @@ data Local (n : ℕ) : Set where
 Configuration : ℕ -> Set
 Configuration n = Vec (Local n) n
 
-data _-_→l_ {n : ℕ} : Local n -> Action n -> Local n -> Set where
+data _-_→l_ {n : ℕ} : (Fin n × Local n) -> Action n -> (Fin n × Local n) -> Set where
     →l-send :
         ∀ { q lbl lt' }
         -> (p : Fin n)
         -> (p≠q : ¬ (p ≡ q))
-        -> sendSingle q lbl lt' - (action p q p≠q lbl) →l lt'
+        -> (p , sendSingle q lbl lt') - (action p q p≠q lbl) →l (p , lt')
     →l-recv :
         ∀ { q lbl lt' }
         -> (p : Fin n)
         -> (q≠p : ¬ (q ≡ p))
-        -> recvSingle q lbl lt' - (action q p q≠p lbl) →l lt'
+        -> (p , recvSingle q lbl lt') - (action q p q≠p lbl) →l (p , lt')
 
 data _-_→c_ {n : ℕ} : Configuration n -> Action n -> Configuration n -> Set where
     →c-comm :
@@ -33,6 +34,6 @@ data _-_→c_ {n : ℕ} : Configuration n -> Action n -> Configuration n -> Set 
         -> (lp ≡ lookup c p)
         -> (lq ≡ lookup c q)
         -> (c' ≡ (c [ p ]≔ lp') [ q ]≔ lq')
-        -> lp - (action p q p≠q l) →l lp'
-        -> lq - (action p q p≠q l) →l lq'
+        -> (p , lp) - (action p q p≠q l) →l (p , lp')
+        -> (q , lq) - (action p q p≠q l) →l (q , lq')
         -> c - (action p q p≠q l) →c  c'

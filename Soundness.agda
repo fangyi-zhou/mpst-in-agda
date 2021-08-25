@@ -32,21 +32,21 @@ soundness
     c'' = c [ p ]≔ (project g' p)
     c' : Configuration n
     c' = c'' [ q ]≔ (project g' q)
-    lpReduce' : project g p - act →l (project g' p)
+    lpReduce' : (p , project g p) - act →l (p , project g' p)
     lpReduce'
         with p ≟ p   | q ≟ p
     ...    | yes _   | no  _   = →l-send p p≠q
     ...    | yes _   | yes q=p = ⊥-elim (p≠q (sym q=p))
     ...    | no  p≠p | _       = ⊥-elim (p≠p refl)
-    lpReduce : lookup c p - act →l (project g' p)
+    lpReduce : (p , lookup c p) - act →l (p , project g' p)
     lpReduce rewrite _↔_.isProj assoc p = lpReduce'
-    lqReduce' : project g q - act →l (project g' q)
+    lqReduce' : (q , project g q) - act →l (q , project g' q)
     lqReduce'
         with q ≟ q   | p ≟ q
     ...    | yes _   | no  _   = →l-recv q p≠q
     ...    | yes _   | yes p=q = ⊥-elim (p≠q p=q)
     ...    | no  q≠q | _       = ⊥-elim (q≠q refl)
-    lqReduce : lookup c q - act →l (project g' q)
+    lqReduce : (q , lookup c q) - act →l (q , project g' q)
     lqReduce rewrite _↔_.isProj assoc q = lqReduce'
     isProj-g' : (r : Fin n) -> lookup c' r ≡ project g' r
     isProj-g' r
