@@ -1,6 +1,8 @@
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; _≟_)
 open import Data.Nat using (ℕ)
+open import Data.Product using (∃-syntax; _,_)
+open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Vec using (lookup)
 open import Relation.Nullary using (yes; no; ¬_)
 open import Relation.Binary.PropositionalEquality using (sym; trans; _≡_; refl; cong; _≢_; module ≡-Reasoning)
@@ -9,10 +11,10 @@ open ≡-Reasoning
 
 open import Common using (Label; Action; action)
 open import Global using (Global; _-_→g_; endG; msgSingle; →g-prefix; →g-cont)
-open import Local using (Local; sendSingle; recvSingle; endL; Configuration; _-_→c_; →c-comm; _-_→l_; →l-send; →l-recv)
+open import Local using (Local; sendSingle; recvSingle; endL; Configuration; _-_→c_; →c-comm; _-_→l_; →l-send; →l-recv; endL≢sendSingle)
 
 project : ∀ { n : ℕ } -> Global n -> Fin n -> Local n
-project endG r
+project endG _
     = endL
 project (msgSingle p q p≠q l g) r
     with p ≟ r | q ≟ r
@@ -64,3 +66,16 @@ proj-prefix-recv r s _ r≠s
 record _↔_ { n : ℕ } (g : Global n) (c : Configuration n) : Set where
     field
         isProj : ∀(p : Fin n) -> lookup c p ≡ project g p
+
+proj-inv-send :
+    ∀ { n : ℕ } { g p q l lt' p≠q }
+    -> project {n} g p ≡ sendSingle q l lt'
+    -> (∃[ g' ] g ≡ msgSingle p q p≠q l g' × project g' p ≡ lt')
+        ⊎ (∃[ r ] ∃[ s ] ∃[ r≠s ] ∃[ l' ] ∃[ g' ]
+            g ≡ msgSingle r s r≠s l' g' × r ≢ p × s ≢ p × project g' p ≡ sendSingle q l lt')
+proj-inv-send {n} {g = g@endG} {p} {q} projSend = ⊥-elim (endL≢sendSingle projSend)
+proj-inv-send {n} {g = g@(msgSingle r s r≠s l' g')} {p} {q} {p≠q = p≠q} projSend
+    with r ≟ p   | s ≟ p
+...    | yes r≡p | yes s≡p = ⊥-elim (r≠s (trans r≡p (sym s≡p)))
+...    | no r≢p  | no s≢p  = inj₂ (r , (s , (r≠s , (l' , (g' , (refl , (r≢p , s≢p , {!   !})))))))
+...    | yes r≡p | no _    = inj₁ (g' , ({!   !} , {!   !}))

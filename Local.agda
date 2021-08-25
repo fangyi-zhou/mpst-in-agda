@@ -1,4 +1,4 @@
-open import Relation.Binary.PropositionalEquality using (subst; _≡_)
+open import Relation.Binary.PropositionalEquality using (_≡_; _≢_)
 open import Relation.Nullary using (¬_)
 open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ)
@@ -10,6 +10,9 @@ open import Common using (Label; Action; action)
 data Local (n : ℕ) : Set where
     endL : Local n
     sendSingle recvSingle : Fin n -> Label -> Local n -> Local n
+
+endL≢sendSingle : ∀ { n : ℕ } { q l lt' } -> endL {n} ≢ sendSingle q l lt'
+endL≢sendSingle ()
 
 Configuration : ℕ -> Set
 Configuration n = Vec (Local n) n
