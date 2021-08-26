@@ -1,13 +1,27 @@
 open import Relation.Nullary using (¬_)
-open import Relation.Binary.PropositionalEquality using (_≡_)
+open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ)
 
-open import Common using (Label; Action; action)
+open import Common using (Label; Action; action; ≢-subst-left; ≢-subst-right)
 
 data Global (n : ℕ) : Set where
     endG : Global n
     msgSingle : (p q : Fin n) -> ¬ (p ≡ q) -> Label -> Global n -> Global n
+
+msgSingle-subst-left :
+    ∀ { n : ℕ } { p q p≠q l g' p' g }
+    -> g ≡ msgSingle {n} p q p≠q l g'
+    -> (p≡p' : p ≡ p')
+    -> g ≡ msgSingle {n} p' q (≢-subst-left p≠q p≡p') l g'
+msgSingle-subst-left refl refl = refl
+
+msgSingle-subst-right :
+    ∀ { n : ℕ } { p q p≠q l g' q' g }
+    -> g ≡ msgSingle {n} p q p≠q l g'
+    -> (q≡q' : q ≡ q')
+    -> g ≡ msgSingle {n} p q' (≢-subst-right p≠q q≡q') l g'
+msgSingle-subst-right refl refl = refl
 
 data _-_→g_ {n : ℕ} : Global n -> Action n -> Global n -> Set where
     →g-prefix :

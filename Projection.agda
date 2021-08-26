@@ -9,8 +9,10 @@ open import Relation.Binary.PropositionalEquality using (sym; trans; _≡_; refl
 open import Data.Product using (∃-syntax; _,_; proj₁; proj₂; _×_)
 open ≡-Reasoning
 
-open import Common using (Label; Action; action; ¬≡-flip)
-open import Global using (Global; _-_→g_; endG; msgSingle; →g-prefix; →g-cont)
+open import Common using (Label; Action; action; ¬≡-flip; ≢-subst-left; ≢-subst-right)
+open import Global using
+    (Global; _-_→g_; endG; msgSingle; →g-prefix; →g-cont; msgSingle-subst-left;
+    msgSingle-subst-right)
 open import Local using
     (Local; sendSingle; recvSingle; endL; Configuration; _-_→c_; →c-comm;
     _-_→l_; →l-send; →l-recv; endL≢sendSingle; sendSingle-injective)
@@ -70,26 +72,28 @@ record _↔_ { n : ℕ } (g : Global n) (c : Configuration n) : Set where
         isProj : ∀(p : Fin n) -> lookup c p ≡ project g p
 
 proj-inv-send :
-    ∀ { n : ℕ } { g p q l lt' p≠q }
+    ∀ { n : ℕ } { g p q l lt' }
     -> project {n} g p ≡ sendSingle q l lt'
-    -> (∃[ g' ] g ≡ msgSingle p q p≠q l g' × project g' p ≡ lt')
+    -> (∃[ p≠q ] ∃[ g' ] g ≡ msgSingle p q p≠q l g' × project g' p ≡ lt')
         ⊎ (∃[ r ] ∃[ s ] ∃[ r≠s ] ∃[ l' ] ∃[ g' ]
             g ≡ msgSingle r s r≠s l' g' × r ≢ p × s ≢ p × project g' p ≡ sendSingle q l lt')
 proj-inv-send {n} {g = g@endG} {p} {q} projSend = ⊥-elim (endL≢sendSingle projSend)
-proj-inv-send {n} {g = g@(msgSingle r s r≠s l' g')} {p} {q} {l} {lt'} {p≠q} projSend
+proj-inv-send {n} {g = g@(msgSingle r s r≠s l' g')} {p} {q} {l} {lt'} projSend
     with r ≟ p   | s ≟ p
 ...    | yes r≡p | yes s≡p = ⊥-elim (r≠s (trans r≡p (sym s≡p)))
 ...    | no r≢p  | no s≢p  = inj₂ (r , (s , (r≠s , (l' , (g' , (refl , (r≢p , s≢p , projSend)))))))
 ...    | yes r≡p | no s≢p  with sendSingle-injective projSend
-...                           | s≡q , l'≡l , proj-g'≡lt' = inj₁ (g' , (msgSingle-same , proj-g'≡lt'))
+...                           | s≡q , l'≡l , proj-g'≡lt' = inj₁ (p≠q , (g' , (msgSingle-same , proj-g'≡lt')))
         where
+            p≠q : p ≢ q
+            p≠q = ≢-subst-right (≢-subst-left r≠s r≡p) s≡q
             msgSingle-same : msgSingle r s r≠s l' g' ≡ msgSingle p q p≠q l g'
             msgSingle-same
                 = begin
                     msgSingle r s r≠s l' g'
-                ≡⟨ {!   !} ⟩
-                    msgSingle p s (¬≡-flip s≢p) l' g'
-                ≡⟨ {!   !} ⟩
+                ≡⟨ msgSingle-subst-left refl r≡p ⟩
+                    msgSingle p s (≢-subst-left r≠s r≡p) l' g'
+                ≡⟨ msgSingle-subst-right refl s≡q ⟩
                     msgSingle p q p≠q l' g'
                 ≡⟨ cong (λ l -> msgSingle p q p≠q l g') l'≡l ⟩
                     msgSingle p q p≠q l g'
