@@ -2,6 +2,7 @@ open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ)
+open import Data.Product using (_×_; _,_)
 
 open import Common
 
@@ -22,6 +23,12 @@ msgSingle-subst-right :
     -> (q≡q' : q ≡ q')
     -> g ≡ msgSingle {n} p q' (≢-subst-right p≠q q≡q') l g'
 msgSingle-subst-right refl refl = refl
+
+msgSingle-injective :
+    ∀ { n : ℕ } { p q p≠q l g' p' q' p'≠q' l' g'' }
+    -> msgSingle {n} p q p≠q l g' ≡ msgSingle p' q' p'≠q' l' g''
+    -> p ≡ p' × q ≡ q' × l ≡ l' × g' ≡ g''
+msgSingle-injective refl = refl , (refl , (refl , refl))
 
 data _-_→g_ {n : ℕ} : Global n -> Action n -> Global n -> Set where
     →g-prefix :
