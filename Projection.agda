@@ -9,13 +9,9 @@ open import Relation.Binary.PropositionalEquality using (sym; trans; _≡_; refl
 open import Data.Product using (∃-syntax; _,_; proj₁; proj₂; _×_)
 open ≡-Reasoning
 
-open import Common using (Label; Action; action; ¬≡-flip; ≢-subst-left; ≢-subst-right)
-open import Global using
-    (Global; _-_→g_; endG; msgSingle; →g-prefix; →g-cont; msgSingle-subst-left;
-    msgSingle-subst-right)
-open import Local using
-    (Local; sendSingle; recvSingle; endL; Configuration; _-_→c_; →c-comm;
-    _-_→l_; →l-send; →l-recv; endL≢sendSingle; sendSingle-injective)
+open import Common
+open import Global
+open import Local
 
 project : ∀ { n : ℕ } -> Global n -> Fin n -> Local n
 project endG _
@@ -77,7 +73,7 @@ proj-inv-send :
     -> (∃[ p≠q ] ∃[ g' ] g ≡ msgSingle p q p≠q l g' × project g' p ≡ lt')
         ⊎ (∃[ r ] ∃[ s ] ∃[ r≠s ] ∃[ l' ] ∃[ g' ]
             g ≡ msgSingle r s r≠s l' g' × r ≢ p × s ≢ p × project g' p ≡ sendSingle q l lt')
-proj-inv-send {n} {g = g@endG} {p} {q} projSend = ⊥-elim (endL≢sendSingle projSend)
+proj-inv-send {g = g@endG} projSend = ⊥-elim (endL≢sendSingle projSend)
 proj-inv-send {n} {g = g@(msgSingle r s r≠s l' g')} {p} {q} {l} {lt'} projSend
     with r ≟ p   | s ≟ p
 ...    | yes r≡p | yes s≡p = ⊥-elim (r≠s (trans r≡p (sym s≡p)))

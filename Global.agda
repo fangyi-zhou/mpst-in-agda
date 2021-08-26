@@ -3,7 +3,7 @@ open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ)
 
-open import Common using (Label; Action; action; ≢-subst-left; ≢-subst-right)
+open import Common
 
 data Global (n : ℕ) : Set where
     endG : Global n

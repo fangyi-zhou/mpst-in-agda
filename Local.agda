@@ -5,7 +5,7 @@ open import Data.Nat using (ℕ)
 open import Data.Product using (_×_; _,_)
 open import Data.Vec using (Vec; lookup; _[_]≔_)
 
-open import Common using (Label; Action; action)
+open import Common
 
 data Local (n : ℕ) : Set where
     endL : Local n

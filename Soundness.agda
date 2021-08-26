@@ -8,10 +8,10 @@ open import Relation.Binary.PropositionalEquality using (sym; trans; _≡_; refl
 open import Data.Product using (∃-syntax; _,_; proj₁; proj₂; _×_)
 open ≡-Reasoning
 
-open import Common using (Label; Action; action; ¬≡-flip)
-open import Global using (Global; _-_→g_; endG; msgSingle; →g-prefix; →g-cont)
-open import Local using (Local; sendSingle; recvSingle; endL; Configuration; _-_→c_; →c-comm; _-_→l_; →l-send; →l-recv)
-open import Projection using (project; _↔_; proj-prefix-send; proj-prefix-recv; proj-prefix-other)
+open import Common
+open import Global
+open import Local
+open import Projection
 
 soundness :
     ∀{ n } { act : Action n } { c g g' }

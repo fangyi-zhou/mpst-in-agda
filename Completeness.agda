@@ -2,10 +2,10 @@ open import Data.Empty using (⊥-elim)
 open import Data.Product using (∃-syntax; _×_; _,_)
 open import Relation.Binary.PropositionalEquality using (refl)
 
-open import Common using (Action; action)
-open import Global using (_-_→g_)
-open import Local using (_-_→c_; →c-comm; →l-send; →l-recv)
-open import Projection using (_↔_)
+open import Common
+open import Global
+open import Local
+open import Projection
 
 completeness :
     ∀{ n } { act : Action n } { c c' g }
