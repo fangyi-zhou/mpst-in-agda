@@ -9,9 +9,11 @@ open import Relation.Binary.PropositionalEquality using (sym; trans; _≡_; refl
 open import Data.Product using (∃-syntax; _,_; proj₁; proj₂; _×_)
 open ≡-Reasoning
 
-open import Common using (Label; Action; action)
+open import Common using (Label; Action; action; ¬≡-flip)
 open import Global using (Global; _-_→g_; endG; msgSingle; →g-prefix; →g-cont)
-open import Local using (Local; sendSingle; recvSingle; endL; Configuration; _-_→c_; →c-comm; _-_→l_; →l-send; →l-recv; endL≢sendSingle)
+open import Local using
+    (Local; sendSingle; recvSingle; endL; Configuration; _-_→c_; →c-comm;
+    _-_→l_; →l-send; →l-recv; endL≢sendSingle; sendSingle-injective)
 
 project : ∀ { n : ℕ } -> Global n -> Fin n -> Local n
 project endG _
@@ -74,8 +76,21 @@ proj-inv-send :
         ⊎ (∃[ r ] ∃[ s ] ∃[ r≠s ] ∃[ l' ] ∃[ g' ]
             g ≡ msgSingle r s r≠s l' g' × r ≢ p × s ≢ p × project g' p ≡ sendSingle q l lt')
 proj-inv-send {n} {g = g@endG} {p} {q} projSend = ⊥-elim (endL≢sendSingle projSend)
-proj-inv-send {n} {g = g@(msgSingle r s r≠s l' g')} {p} {q} {p≠q = p≠q} projSend
+proj-inv-send {n} {g = g@(msgSingle r s r≠s l' g')} {p} {q} {l} {lt'} {p≠q} projSend
     with r ≟ p   | s ≟ p
 ...    | yes r≡p | yes s≡p = ⊥-elim (r≠s (trans r≡p (sym s≡p)))
-...    | no r≢p  | no s≢p  = inj₂ (r , (s , (r≠s , (l' , (g' , (refl , (r≢p , s≢p , {!   !})))))))
-...    | yes r≡p | no _    = inj₁ (g' , ({!   !} , {!   !}))
+...    | no r≢p  | no s≢p  = inj₂ (r , (s , (r≠s , (l' , (g' , (refl , (r≢p , s≢p , projSend)))))))
+...    | yes r≡p | no s≢p  with sendSingle-injective projSend
+...                           | s≡q , l'≡l , proj-g'≡lt' = inj₁ (g' , (msgSingle-same , proj-g'≡lt'))
+        where
+            msgSingle-same : msgSingle r s r≠s l' g' ≡ msgSingle p q p≠q l g'
+            msgSingle-same
+                = begin
+                    msgSingle r s r≠s l' g'
+                ≡⟨ {!   !} ⟩
+                    msgSingle p s (¬≡-flip s≢p) l' g'
+                ≡⟨ {!   !} ⟩
+                    msgSingle p q p≠q l' g'
+                ≡⟨ cong (λ l -> msgSingle p q p≠q l g') l'≡l ⟩
+                    msgSingle p q p≠q l g'
+                ∎
