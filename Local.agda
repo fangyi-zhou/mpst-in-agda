@@ -14,11 +14,20 @@ data Local (n : ℕ) : Set where
 endL≢sendSingle : ∀ { n : ℕ } { q l lt' } -> endL {n} ≢ sendSingle q l lt'
 endL≢sendSingle ()
 
+endL≢recvSingle : ∀ { n : ℕ } { q l lt' } -> endL {n} ≢ recvSingle q l lt'
+endL≢recvSingle ()
+
 sendSingle-injective :
     ∀ { n : ℕ } { p l lt' p' l' lt'' }
     -> sendSingle {n} p l lt' ≡ sendSingle p' l' lt''
     -> p ≡ p' × l ≡ l' × lt' ≡ lt''
 sendSingle-injective refl = refl , refl , refl
+
+recvSingle-injective :
+    ∀ { n : ℕ } { p l lt' p' l' lt'' }
+    -> recvSingle {n} p l lt' ≡ recvSingle p' l' lt''
+    -> p ≡ p' × l ≡ l' × lt' ≡ lt''
+recvSingle-injective refl = refl , refl , refl
 
 Configuration : ℕ -> Set
 Configuration n = Vec (Local n) n

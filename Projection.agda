@@ -94,3 +94,31 @@ proj-inv-send {n} {g = g@(msgSingle r s r≠s l' g')} {p} {q} {l} {lt'} projSend
                 ≡⟨ cong (λ l -> msgSingle p q p≠q l g') l'≡l ⟩
                     msgSingle p q p≠q l g'
                 ∎
+
+proj-inv-recv :
+    ∀ { n : ℕ } { g p q l lt' }
+    -> project {n} g p ≡ recvSingle q l lt'
+    -> (∃[ p≠q ] ∃[ g' ] g ≡ msgSingle q p p≠q l g' × project g' p ≡ lt')
+        ⊎ (∃[ r ] ∃[ s ] ∃[ r≠s ] ∃[ l' ] ∃[ g' ]
+            g ≡ msgSingle r s r≠s l' g' × r ≢ p × s ≢ p × project g' p ≡ recvSingle q l lt')
+proj-inv-recv {g = g@endG} projRecv = ⊥-elim (endL≢recvSingle projRecv)
+proj-inv-recv {n} {g = g@(msgSingle r s r≠s l' g')} {p} {q} {l} {lt'} projRecv
+    with r ≟ p   | s ≟ p
+...    | yes r≡p | yes s≡p = ⊥-elim (r≠s (trans r≡p (sym s≡p)))
+...    | no r≢p  | no s≢p  = inj₂ (r , (s , (r≠s , (l' , (g' , (refl , (r≢p , s≢p , projRecv)))))))
+...    | no r≢p  | yes s≡p with recvSingle-injective projRecv
+...                           | r≡q , l'≡l , proj-g'≡lt' = inj₁ (q≠p , (g' , (msgSingle-same , proj-g'≡lt')))
+        where
+            q≠p : q ≢ p
+            q≠p = ≢-subst-left (≢-subst-right r≠s s≡p) r≡q
+            msgSingle-same : msgSingle r s r≠s l' g' ≡ msgSingle q p q≠p l g'
+            msgSingle-same
+                = begin
+                    msgSingle r s r≠s l' g'
+                ≡⟨ msgSingle-subst-right refl s≡p ⟩
+                    msgSingle r p (≢-subst-right r≠s s≡p) l' g'
+                ≡⟨ msgSingle-subst-left refl r≡q ⟩
+                    msgSingle q p q≠p l' g'
+                ≡⟨ cong (λ l -> msgSingle q p q≠p l g') l'≡l ⟩
+                    msgSingle q p q≠p l g'
+                ∎
