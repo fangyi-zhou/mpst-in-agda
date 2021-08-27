@@ -20,9 +20,9 @@ soundness :
     -> ∃[ c' ] ((c - act →c c') × (g' ↔ c'))
 soundness
     {n = n}
-    {act = act@(.action p q p≠q l)}
+    {act = act@(action .p .q p≠q .l)}
     {c = c}
-    {g = g@(msgSingle p q p≠q l g')}
+    {g = g@(msgSingle p q _ l g')}
     {g' = .g'}
     assoc
     →g-prefix

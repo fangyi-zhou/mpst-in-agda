@@ -32,8 +32,8 @@ msgSingle-injective refl = refl , (refl , (refl , refl))
 
 data _-_→g_ {n : ℕ} : Global n -> Action n -> Global n -> Set where
     →g-prefix :
-        ∀ { p q l g' p≠q }
-        -> (msgSingle p q p≠q l g') - (action p q p≠q l) →g g'
+        ∀ { p q l g' p≠q p≠q' }
+        -> (msgSingle p q p≠q l g') - (action p q p≠q' l) →g g'
     →g-cont :
         ∀ { p q l l' r s g₁ g₂ p≠q r≠s }
         -> g₁ - (action p q p≠q l) →g g₂

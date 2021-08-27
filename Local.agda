@@ -46,12 +46,12 @@ data _-_→l_ {n : ℕ} : (Fin n × Local n) -> Action n -> (Fin n × Local n) -
 
 data _-_→c_ {n : ℕ} : Configuration n -> Action n -> Configuration n -> Set where
     →c-comm :
-        ∀ { p q l lp lp' lq lq' c' }
+        ∀ { p q l lp lp' lq lq' c' p≠q-p p≠q-q}
         -> (c : Configuration n)
         -> (p≠q : ¬ (p ≡ q))
         -> (lp ≡ lookup c p)
         -> (lq ≡ lookup c q)
         -> (c' ≡ (c [ p ]≔ lp') [ q ]≔ lq')
-        -> (p , lp) - (action p q p≠q l) →l (p , lp')
-        -> (q , lq) - (action p q p≠q l) →l (q , lq')
+        -> (p , lp) - (action p q p≠q-p l) →l (p , lp')
+        -> (q , lq) - (action p q p≠q-q l) →l (q , lq')
         -> c - (action p q p≠q l) →c  c'
