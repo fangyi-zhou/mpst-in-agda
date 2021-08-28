@@ -13,6 +13,7 @@ open import Global
 open import Local
 open import Projection
 
+{-# TERMINATING #-}
 completeness :
     ∀{ n } { act : Action n } { c c' g }
     -> g ↔ c
@@ -79,7 +80,7 @@ completeness
 
 ...    | inj₂ (r₁ , s₁ , r≠s , l'₁ , g'₁ , g-inv₁ , r≠p  , s≠p  , g'₁-proj-p)
        | inj₂ (r₂ , s₂ , _   , l'₂ , g'₂ , g-inv₂ , r≠q' , s≠q' , g'₂-proj-q)
-        = g'₁ , (gReduce , record { isProj = isProj-g' })
+        = g' , ({! gReduce  !} , record { isProj = isProj-g' })
     where
         injective = msgSingle-injective (trans (sym g-inv₁) g-inv₂)
         g'₁≡g'₂ : g'₁ ≡ g'₂
@@ -106,8 +107,6 @@ completeness
         cSub[q]-lookup rewrite lq≡c[q]
                        rewrite sym (lookup∘update′ (¬≡-flip r≠q) c lr')
                        rewrite sym (lookup∘update′ (¬≡-flip s≠q) (c [ r₁ ]≔ lr') ls') = refl
-        cSub→cSub' : cSub - act →c cSub'
-        cSub→cSub' = →c-comm cSub p≠q cSub[p]-lookup cSub[q]-lookup refl lpReduce lqReduce
         isProj-g'₁ : (t : Fin n) -> lookup cSub t ≡ project g'₁ t
         isProj-g'₁ t
             with r₁ ≟ t   | s₁ ≟ t
@@ -122,9 +121,24 @@ completeness
                                     rewrite _↔_.isProj assoc t
                                     rewrite g-inv₁ = refl
         ...    | yes r≡t  | yes s≡t = ⊥-elim (r≠s (trans r≡t (sym s≡t)))
+        cSub→cSub' : cSub - act →c cSub'
+        cSub→cSub' = →c-comm cSub p≠q cSub[p]-lookup cSub[q]-lookup refl lpReduce lqReduce
         assocSub : g'₁ ↔ cSub
         assocSub = record { isProj = isProj-g'₁ }
         ∃g'' : ∃[ g'' ] ((g'₁ - act →g g'') × (g'' ↔ cSub'))
         ∃g'' = completeness assocSub cSub→cSub'
-        postulate gReduce : g - act →g g'₁
-        postulate isProj-g' : (r : Fin n) -> lookup c' r ≡ project g'₁ r
+        g'' = proj₁ ∃g''
+        g'Reduce : g'₁ - act →g g''
+        g'Reduce = proj₁ (proj₂ ∃g'')
+        g''Assoc : g'' ↔ cSub'
+        g''Assoc = proj₂ (proj₂ ∃g'')
+        g' = msgSingle r₁ s₁ r≠s l'₁ g''
+        gReduce : (msgSingle r₁ s₁ r≠s l'₁ g'₁) - act →g (msgSingle r₁ s₁ r≠s l'₁ g'')
+        gReduce = →g-cont {l' = l'₁} {r≠s = r≠s} g'Reduce (¬≡-flip r≠p) (¬≡-flip r≠q) (¬≡-flip s≠p) (¬≡-flip s≠q)
+        isProj-g' : (t : Fin n) -> lookup c' t ≡ project g' t
+        isProj-g' t
+            with r₁ ≟ t   | s₁ ≟ t
+        ...    | yes r≡t  | no _    = {!   !}
+        ...    | no _     | yes s≡t = {!   !}
+        ...    | no r≠t   | no s≠t  = {!   !}
+        ...    | yes r≡t  | yes s≡t = ⊥-elim (r≠s (trans r≡t (sym s≡t)))
