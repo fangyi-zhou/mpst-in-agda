@@ -133,12 +133,30 @@ completeness
         g''Assoc : g'' ↔ cSub'
         g''Assoc = proj₂ (proj₂ ∃g'')
         g' = msgSingle r₁ s₁ r≠s l'₁ g''
+        proj-g'₁-g''-eq : (t : Fin n) -> t ≢ p -> t ≢ q -> project g'₁ t ≡ project g'' t
+        proj-g'₁-g''-eq t t≠p t≠q with t ≟ p   | t ≟ q
+        ...                          | no _    | no _    rewrite sym (_↔_.isProj assocSub t)
+                                                         rewrite sym (lookup∘update′ t≠p cSub lp')
+                                                         rewrite sym (lookup∘update′ t≠q (cSub [ p ]≔ lp') lq')
+                                                         rewrite _↔_.isProj g''Assoc t = refl
+        ...                          | yes t≡p | _       = ⊥-elim (t≠p t≡p)
+        ...                          | _       | yes t≡q = ⊥-elim (t≠q t≡q)
         gReduce : (msgSingle r₁ s₁ r≠s l'₁ g'₁) - act →g (msgSingle r₁ s₁ r≠s l'₁ g'')
         gReduce = →g-cont {l' = l'₁} {r≠s = r≠s} g'Reduce (¬≡-flip r≠p) (¬≡-flip r≠q) (¬≡-flip s≠p) (¬≡-flip s≠q)
         isProj-g' : (t : Fin n) -> lookup c' t ≡ project g' t
         isProj-g' t
             with r₁ ≟ t   | s₁ ≟ t
-        ...    | yes r≡t  | no _    = {!   !}
+        ...    | yes r≡t  | no _    rewrite sym r≡t
+                                    rewrite c→c'
+                                    rewrite lookup∘update′ r≠q (c [ p ]≔ lp') lq'
+                                    rewrite lookup∘update′ r≠p c lp'
+                                    rewrite _↔_.isProj assoc r₁
+                                    rewrite g-inv₁
+                                    rewrite proj-prefix-send r₁ s₁ {l'₁} g'₁ r≠s
+                                    rewrite cong (λ lt -> sendSingle s₁ l'₁ lt) (sym (_↔_.isProj assocSub r₁))
+                                    rewrite cong (λ lt -> sendSingle s₁ l'₁ lt) (sym (lookup∘update′ r≠p cSub lp'))
+                                    rewrite cong (λ lt -> sendSingle s₁ l'₁ lt) (sym (lookup∘update′ r≠q (cSub [ p ]≔ lp') lq'))
+                                    = cong (λ lt → sendSingle s₁ l'₁ lt) ({! trans   !} )
         ...    | no _     | yes s≡t = {!   !}
         ...    | no r≠t   | no s≠t  = {!   !}
         ...    | yes r≡t  | yes s≡t = ⊥-elim (r≠s (trans r≡t (sym s≡t)))
