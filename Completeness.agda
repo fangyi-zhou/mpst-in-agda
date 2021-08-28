@@ -4,8 +4,9 @@ open import Data.Product using (∃-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Sum using (inj₁; inj₂)
 open import Data.Vec using (lookup; _[_]≔_)
 open import Data.Vec.Properties using (lookup∘update; lookup∘update′)
-open import Relation.Binary.PropositionalEquality using (refl; sym; trans; _≡_)
+open import Relation.Binary.PropositionalEquality using (refl; sym; cong; trans; _≡_; _≢_; module ≡-Reasoning)
 open import Relation.Nullary using (yes; no)
+open ≡-Reasoning
 
 open import Common
 open import Global
@@ -30,7 +31,7 @@ completeness
     {g = g}
     assoc
     (→c-comm {p} {q} {l} c p≠q lp≡c[p] lq≡c[q] c→c'
-        (→l-send {lt' = lp'} .p _) (→l-recv {lt' = lq'} .q _)
+        lpReduce@(→l-send {lt' = lp'} .p _) lqReduce@(→l-recv {lt' = lq'} .q _)
     )
     with proj-inv-send {g = g} (trans (sym (_↔_.isProj assoc p)) (sym lp≡c[p]))
        | proj-inv-recv {g = g} (trans (sym (_↔_.isProj assoc q)) (sym lq≡c[q]))
@@ -76,12 +77,54 @@ completeness
     where
         injective = msgSingle-injective (trans (sym g-inv₁) g-inv₂)
 
-...    | inj₂ (r₁ , s₁ , r≠s , l'₁ , g'₁ , g-inv₁ , _ , _ , _)
-       | inj₂ (r₂ , s₂ , _   , l'₂ , g'₂ , g-inv₂ , _ , _ , _)
+...    | inj₂ (r₁ , s₁ , r≠s , l'₁ , g'₁ , g-inv₁ , r≠p  , s≠p  , g'₁-proj-p)
+       | inj₂ (r₂ , s₂ , _   , l'₂ , g'₂ , g-inv₂ , r≠q' , s≠q' , g'₂-proj-q)
         = g'₁ , (gReduce , record { isProj = isProj-g' })
     where
         injective = msgSingle-injective (trans (sym g-inv₁) g-inv₂)
         g'₁≡g'₂ : g'₁ ≡ g'₂
         g'₁≡g'₂ = proj₂ (proj₂ (proj₂ injective))
+        r₁≡r₂ : r₁ ≡ r₂
+        r₁≡r₂ = proj₁ injective
+        s₁≡s₂ : s₁ ≡ s₂
+        s₁≡s₂ = proj₁ (proj₂ injective)
+        r≠q : r₁ ≢ q
+        r≠q = ≢-subst-left r≠q' (sym r₁≡r₂)
+        s≠q : s₁ ≢ q
+        s≠q = ≢-subst-left s≠q' (sym s₁≡s₂)
+        lr' = project g'₁ r₁
+        ls' = project g'₁ s₁
+        cSub : Configuration n
+        cSub = (c [ r₁ ]≔ lr') [ s₁ ]≔ ls'
+        cSub' : Configuration n
+        cSub' = (cSub [ p ]≔ lp') [ q ]≔ lq'
+        cSub[p]-lookup : sendSingle q l lp' ≡ lookup cSub p
+        cSub[p]-lookup rewrite lp≡c[p]
+                       rewrite sym (lookup∘update′ (¬≡-flip r≠p) c lr')
+                       rewrite sym (lookup∘update′ (¬≡-flip s≠p) (c [ r₁ ]≔ lr') ls') = refl
+        cSub[q]-lookup : recvSingle p l lq' ≡ lookup cSub q
+        cSub[q]-lookup rewrite lq≡c[q]
+                       rewrite sym (lookup∘update′ (¬≡-flip r≠q) c lr')
+                       rewrite sym (lookup∘update′ (¬≡-flip s≠q) (c [ r₁ ]≔ lr') ls') = refl
+        cSub→cSub' : cSub - act →c cSub'
+        cSub→cSub' = →c-comm cSub p≠q cSub[p]-lookup cSub[q]-lookup refl lpReduce lqReduce
+        isProj-g'₁ : (t : Fin n) -> lookup cSub t ≡ project g'₁ t
+        isProj-g'₁ t
+            with r₁ ≟ t   | s₁ ≟ t
+        ...    | yes r≡t  | no s≠t  rewrite sym r≡t
+                                    rewrite lookup∘update′ (¬≡-flip s≠t) (c [ r₁ ]≔ lr') ls'
+                                    rewrite lookup∘update r₁ c lr' = refl
+        ...    | no _     | yes s≡t rewrite sym s≡t
+                                    rewrite lookup∘update s₁ (c [ r₁ ]≔ lr') ls' = refl
+        ...    | no r≠t   | no s≠t  rewrite lookup∘update′ (¬≡-flip s≠t) (c [ r₁ ]≔ lr') ls'
+                                    rewrite lookup∘update′ (¬≡-flip r≠t) c lr'
+                                    rewrite sym (proj-prefix-other r₁ s₁ t {r≠s} {l'₁} g'₁ r≠t s≠t)
+                                    rewrite _↔_.isProj assoc t
+                                    rewrite g-inv₁ = refl
+        ...    | yes r≡t  | yes s≡t = ⊥-elim (r≠s (trans r≡t (sym s≡t)))
+        assocSub : g'₁ ↔ cSub
+        assocSub = record { isProj = isProj-g'₁ }
+        ∃g'' : ∃[ g'' ] ((g'₁ - act →g g'') × (g'' ↔ cSub'))
+        ∃g'' = completeness assocSub cSub→cSub'
         postulate gReduce : g - act →g g'₁
         postulate isProj-g' : (r : Fin n) -> lookup c' r ≡ project g'₁ r
