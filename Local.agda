@@ -34,19 +34,21 @@ Configuration n = Vec (Local n) n
 
 data _-_→l_ {n : ℕ} : (Fin n × Local n) -> Action n -> (Fin n × Local n) -> Set where
     →l-send :
-        ∀ { q lbl lt' }
+        ∀ { q lbl lp lp' }
         -> (p : Fin n)
+        -> (lp ≡ sendSingle q lbl lp')
         -> (p≠q : ¬ (p ≡ q))
-        -> (p , sendSingle q lbl lt') - (action p q p≠q lbl) →l (p , lt')
+        -> (p , lp) - (action p q p≠q lbl) →l (p , lp')
     →l-recv :
-        ∀ { q lbl lt' }
+        ∀ { q lbl lp lp' }
         -> (p : Fin n)
+        -> (lp ≡ recvSingle q lbl lp')
         -> (q≠p : ¬ (q ≡ p))
-        -> (p , recvSingle q lbl lt') - (action q p q≠p lbl) →l (p , lt')
+        -> (p , lp) - (action q p q≠p lbl) →l (p , lp')
 
 data _-_→c_ {n : ℕ} : Configuration n -> Action n -> Configuration n -> Set where
     →c-comm :
-        ∀ { p q l lp lp' lq lq' c' p≠q-p p≠q-q}
+        ∀ { p q l lp lp' lq lq' c' p≠q-p p≠q-q }
         -> (c : Configuration n)
         -> (p≠q : ¬ (p ≡ q))
         -> (lp ≡ lookup c p)

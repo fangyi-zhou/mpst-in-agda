@@ -35,7 +35,7 @@ soundness
     lpReduce' : (p , project g p) - act →l (p , project g' p)
     lpReduce'
         with p ≟ p   | q ≟ p
-    ...    | yes _   | no  _   = →l-send p p≠q
+    ...    | yes _   | no  _   = →l-send p refl p≠q
     ...    | yes _   | yes q=p = ⊥-elim (p≠q (sym q=p))
     ...    | no  p≠p | _       = ⊥-elim (p≠p refl)
     lpReduce : (p , lookup c p) - act →l (p , project g' p)
@@ -43,7 +43,7 @@ soundness
     lqReduce' : (q , project g q) - act →l (q , project g' q)
     lqReduce'
         with q ≟ q   | p ≟ q
-    ...    | yes _   | no  _   = →l-recv q p≠q
+    ...    | yes _   | no  _   = →l-recv q refl p≠q
     ...    | yes _   | yes p=q = ⊥-elim (p≠q p=q)
     ...    | no  q≠q | _       = ⊥-elim (q≠q refl)
     lqReduce : (q , lookup c q) - act →l (q , project g' q)

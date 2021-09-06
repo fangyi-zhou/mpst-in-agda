@@ -19,11 +19,11 @@ completeness :
     -> g ↔ c
     -> c - act →c c'
     -> ∃[ g' ] ((g - act →g g') × (g' ↔ c'))
-completeness assoc (→c-comm c p≠q lp≡c[p] lq≡c[q] c→c' (→l-send p _) (→l-send .p _))
+completeness assoc (→c-comm c p≠q lp≡c[p] lq≡c[q] c→c' (→l-send p _ _) (→l-send .p _ _))
     = ⊥-elim (p≠q refl)
-completeness assoc (→c-comm c p≠q lp≡c[p] lq≡c[q] c→c' (→l-recv p _) (→l-send .p _))
+completeness assoc (→c-comm c p≠q lp≡c[p] lq≡c[q] c→c' (→l-recv p _ _) (→l-send .p _ _))
     = ⊥-elim (p≠q refl)
-completeness assoc (→c-comm c p≠q lp≡c[p] lq≡c[q] c→c' (→l-recv p _) (→l-recv .p _))
+completeness assoc (→c-comm c p≠q lp≡c[p] lq≡c[q] c→c' (→l-recv p _ _) (→l-recv .p _ _))
     = ⊥-elim (p≠q refl)
 completeness
     {n}
@@ -32,7 +32,7 @@ completeness
     {g = g}
     assoc
     (→c-comm {p} {q} {l} c p≠q lp≡c[p] lq≡c[q] c→c'
-        lpReduce@(→l-send {lt' = lp'} .p _) lqReduce@(→l-recv {lt' = lq'} .q _)
+        lpReduce@(→l-send {lp' = lp'} .p refl _) lqReduce@(→l-recv {lp' = lq'} .q refl _)
     )
     with proj-inv-send {g = g} (trans (sym (_↔_.isProj assoc p)) (sym lp≡c[p]))
        | proj-inv-recv {g = g} (trans (sym (_↔_.isProj assoc q)) (sym lq≡c[q]))
