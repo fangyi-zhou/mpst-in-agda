@@ -22,45 +22,20 @@ soundness
     {n = n}
     {act = act@(action .p .q p≠q .l)}
     {c = c}
-    {g = g@(msgSingle p q _ l g')}
+    {g = g@(msgSingle p q p≠q-gt l g')}
     {g' = .g'}
     assoc
     →g-prefix
-    = c' , (→c-comm c p≠q refl refl refl lpReduce lqReduce , assoc')
+    = c' , (→c-comm c p≠q refl refl refl lpReduce lqReduce , g'↔c')
   where
-    c'' : Configuration n
-    c'' = c [ p ]≔ (project g' p)
-    c' : Configuration n
-    c' = c'' [ q ]≔ (project g' q)
-    lpReduce' : (p , project g p) - act →l (p , project g' p)
-    lpReduce'
-        with p ≟ p   | q ≟ p
-    ...    | yes _   | no  _   = →l-send p refl p≠q
-    ...    | yes _   | yes q=p = ⊥-elim (p≠q (sym q=p))
-    ...    | no  p≠p | _       = ⊥-elim (p≠p refl)
+    config-without-prefix = config-gt-remove-prefix g c assoc refl
+    c' = proj₁ config-without-prefix
+    g'↔c' : g' ↔ c'
+    g'↔c' = proj₂ (proj₂ config-without-prefix)
     lpReduce : (p , lookup c p) - act →l (p , project g' p)
-    lpReduce rewrite _↔_.isProj assoc p = lpReduce'
-    lqReduce' : (q , project g q) - act →l (q , project g' q)
-    lqReduce'
-        with q ≟ q   | p ≟ q
-    ...    | yes _   | no  _   = →l-recv q refl p≠q
-    ...    | yes _   | yes p=q = ⊥-elim (p≠q p=q)
-    ...    | no  q≠q | _       = ⊥-elim (q≠q refl)
+    lpReduce rewrite _↔_.isProj assoc p = →l-send p (proj-prefix-send p q g' p≠q-gt) p≠q
     lqReduce : (q , lookup c q) - act →l (q , project g' q)
-    lqReduce rewrite _↔_.isProj assoc q = lqReduce'
-    isProj-g' : (r : Fin n) -> lookup c' r ≡ project g' r
-    isProj-g' r
-        with p ≟ r   | q ≟ r
-    ...    | yes p≡r | yes q≡r = ⊥-elim (p≠q (trans p≡r (sym q≡r)))
-    ...    | yes p≡r | no  _   rewrite (sym p≡r)
-                               rewrite lookup∘update′ p≠q c'' (project g' q)
-                               = lookup∘update p c (project g' p)
-    ...    | no _    | yes q≡r rewrite (sym q≡r) = lookup∘update q c'' (project g' q)
-    ...    | no p≠r  | no  q≠r rewrite lookup∘update′ (¬≡-flip q≠r) c'' (project g' q)
-                               rewrite lookup∘update′ (¬≡-flip p≠r) c   (project g' p)
-                               rewrite _↔_.isProj assoc r = proj-prefix-other p q r g' p≠r q≠r
-    assoc' : g' ↔ c'
-    assoc' = record { isProj = isProj-g' }
+    lqReduce rewrite _↔_.isProj assoc q = →l-recv q (proj-prefix-recv p q g' p≠q-gt) p≠q
 soundness
     {n = n}
     {act = act@(.action p q p≠q l)}
@@ -71,28 +46,10 @@ soundness
     (→g-cont gReduce p≠r q≠r p≠s q≠s)
     = c' , (cReduce , assoc')
   where
-    cSub' : Configuration n
-    cSub' = c [ r ]≔ (project g₁ r)
-    cSub : Configuration n
-    cSub = cSub' [ s ]≔ (project g₁ s)
-    lookup-cSub-r : lookup cSub r ≡ project g₁ r
-    lookup-cSub-r rewrite lookup∘update′ r≠s cSub' (project g₁ s)
-                  rewrite lookup∘update r c (project g₁ r) = refl
-    lookup-cSub-s : lookup cSub s ≡ project g₁ s
-    lookup-cSub-s rewrite lookup∘update s cSub' (project g₁ s) = refl
-    lookup-cSub-t : (t : Fin n) -> r ≢ t -> s ≢ t -> lookup cSub t ≡ project g₁ t
-    lookup-cSub-t t r≠t s≠t rewrite lookup∘update′ (¬≡-flip s≠t) cSub' (project g₁ s)
-                            rewrite lookup∘update′ (¬≡-flip r≠t) c     (project g₁ r)
-                            rewrite sym (proj-prefix-other r s t g₁ r≠t s≠t) = _↔_.isProj assoc t
-    isProj-g₁ : ∀(t : Fin n) -> lookup cSub t ≡ project g₁ t
-    isProj-g₁ t
-        with r ≟ t   | s ≟ t
-    ...    | yes r≡t | no _    rewrite (sym r≡t) = lookup-cSub-r
-    ...    | no _    | yes s≡t rewrite (sym s≡t) = lookup-cSub-s
-    ...    | no r≠t  | no s≠t  = lookup-cSub-t t r≠t s≠t
-    ...    | yes r≡t | yes s≡t = ⊥-elim (r≠s (trans r≡t (sym s≡t)))
+    config-without-prefix = config-gt-remove-prefix g c assoc refl
+    cSub = proj₁ config-without-prefix
     g₁↔cSub : g₁ ↔ cSub
-    g₁↔cSub = record { isProj = isProj-g₁ }
+    g₁↔cSub = proj₂ (proj₂ config-without-prefix)
     ∃c'Sub : ∃[ c'Sub ] (cSub - act →c c'Sub × g₂ ↔ c'Sub)
     ∃c'Sub = soundness g₁↔cSub gReduce
     c'Sub : Configuration n
@@ -133,11 +90,11 @@ soundness
       where
         lp≡c[p] : lp ≡ lookup c p
         lp≡c[p] rewrite lp≡cSub[p]
-                rewrite lookup∘update′ p≠s cSub' (project g₁ s)
+                rewrite lookup∘update′ p≠s (c [ r ]≔ (project g₁ r)) (project g₁ s)
                 rewrite lookup∘update′ p≠r c (project g₁ r) = refl
         lq≡c[q] : lq ≡ lookup c q
         lq≡c[q] rewrite lq≡cSub[q]
-                rewrite lookup∘update′ q≠s cSub' (project g₁ s)
+                rewrite lookup∘update′ q≠s (c [ r ]≔ (project g₁ r)) (project g₁ s)
                 rewrite lookup∘update′ q≠r c (project g₁ r) = refl
         lr'≡c[r] : lr' ≡ lookup c r
         lr'≡c[r]
@@ -149,7 +106,7 @@ soundness
               sendSingle s l' (lookup (cSub [ p ]≔ lp') r)
             ≡⟨ cong (λ ls'' -> sendSingle s l' ls'') (lookup∘update′ (¬≡-flip p≠r) cSub lp') ⟩
               sendSingle s l' (lookup cSub r)
-            ≡⟨ cong (λ ls'' -> sendSingle s l' ls'') (isProj-g₁ r) ⟩
+            ≡⟨ cong (λ ls'' -> sendSingle s l' ls'') (_↔_.isProj g₁↔cSub r) ⟩
               sendSingle s l' (project g₁ r)
             ≡˘⟨ proj-prefix-send r s g₁ r≠s ⟩
               project g r
@@ -166,7 +123,7 @@ soundness
             recvSingle r l' (lookup (cSub [ p ]≔ lp') s)
           ≡⟨ cong (λ ls'' -> recvSingle r l' ls'') (lookup∘update′ (¬≡-flip p≠s) cSub lp') ⟩
             recvSingle r l' (lookup cSub s)
-          ≡⟨ cong (λ ls'' -> recvSingle r l' ls'') (isProj-g₁ s) ⟩
+          ≡⟨ cong (λ ls'' -> recvSingle r l' ls'') (_↔_.isProj g₁↔cSub s) ⟩
             recvSingle r l' (project g₁ s)
           ≡˘⟨ proj-prefix-recv r s g₁ r≠s ⟩
             project g s

@@ -3,7 +3,8 @@ open import Data.Fin using (Fin; _≟_)
 open import Data.Nat using (ℕ)
 open import Data.Product using (∃-syntax; _,_)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
-open import Data.Vec using (lookup)
+open import Data.Vec using (lookup; _[_]≔_)
+open import Data.Vec.Properties using (lookup∘update; lookup∘update′)
 open import Relation.Nullary using (yes; no; ¬_)
 open import Relation.Binary.PropositionalEquality using (sym; trans; _≡_; refl; cong; _≢_; module ≡-Reasoning)
 open import Data.Product using (∃-syntax; _,_; proj₁; proj₂; _×_)
@@ -122,3 +123,29 @@ proj-inv-recv {n} {g = g@(msgSingle r s r≠s l' g')} {p} {q} {l} {lt'} projRecv
                 ≡⟨ cong (λ l -> msgSingle q p q≠p l g') l'≡l ⟩
                     msgSingle q p q≠p l g'
                 ∎
+
+config-gt-remove-prefix :
+    ∀ { n : ℕ } { p q l p≠q g' }
+    -> (g : Global n)
+    -> (c : Configuration n)
+    -> g ↔ c
+    -> (g ≡ msgSingle p q p≠q l g')
+    -> ∃[ c' ] ((c' ≡ ((c [ p ]≔ (project g' p)) [ q ]≔ (project g' q))) × (g' ↔ c'))
+config-gt-remove-prefix {n} {p} {q} {_} {p≠q} {g'} g c assoc refl = c' , refl , (record { isProj = isProj-g' })
+    where
+        c' = (c [ p ]≔ (project g' p)) [ q ]≔  (project g' q)
+        isProj-g' : ∀ (r : Fin n) -> lookup c' r ≡ project g' r
+        isProj-g' r
+            with p ≟ r   | q ≟ r
+        ...    | yes p≡r | yes q≡r = ⊥-elim (p≠q (trans p≡r (sym q≡r)))
+        ...    | yes p≡r | no  _   rewrite (sym p≡r)
+                                   rewrite lookup∘update′ p≠q (c [ p ]≔ (project g' p)) (project g' q)
+                                   rewrite lookup∘update p c (project g' p)
+                                   = refl
+        ...    | no _    | yes q≡r rewrite (sym q≡r)
+                                   rewrite lookup∘update q (c [ p ]≔ (project g' p)) (project g' q)
+                                   = refl
+        ...    | no p≠r  | no  q≠r rewrite lookup∘update′ (¬≡-flip q≠r) (c [ p ]≔ (project g' p)) (project g' q)
+                                   rewrite lookup∘update′ (¬≡-flip p≠r) c   (project g' p)
+                                   rewrite _↔_.isProj assoc r
+                                   = proj-prefix-other p q r g' p≠r q≠r
