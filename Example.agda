@@ -67,16 +67,16 @@ g₂→g₂' : g₂ - p→q →g g₂'
 g₂→g₂' = →g-cont g₁→end (λ ()) (λ ()) (λ ()) (λ ())
 
 g₁-proj-p→end : (p , project g₁ p) - p→q →l (p , endL)
-g₁-proj-p→end = →l-send p λ ()
+g₁-proj-p→end = →l-send p refl λ ()
 
 g₁-proj-q→end : (q , project g₁ q) - p→q →l (q , endL)
-g₁-proj-q→end = →l-recv q λ ()
+g₁-proj-q→end = →l-recv q refl λ ()
 
 g₂-proj-p→g₂'-proj-p : (p , project g₂ p) - p→q →l (p , project g₂' p)
-g₂-proj-p→g₂'-proj-p = →l-send p λ ()
+g₂-proj-p→g₂'-proj-p = →l-send p refl λ ()
 
 g₂-proj-q→g₂'-proj-q : (q , project g₂ q) - p→q →l (q , project g₂' q)
-g₂-proj-q→g₂'-proj-q = →l-recv q λ ()
+g₂-proj-q→g₂'-proj-q = →l-recv q refl λ ()
 
 c₁ : Configuration n
 c₁ = lp ∷ lq ∷ endL ∷ endL ∷ []
