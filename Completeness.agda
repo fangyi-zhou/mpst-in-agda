@@ -80,7 +80,7 @@ completeness
 
 ...    | inj₂ (r₁ , s₁ , r≠s , l'₁ , g'₁ , g-inv₁ , r≠p  , s≠p  , g'₁-proj-p)
        | inj₂ (r₂ , s₂ , _   , l'₂ , g'₂ , g-inv₂ , r≠q' , s≠q' , g'₂-proj-q)
-        = g' , ({! gReduce  !} , record { isProj = isProj-g' })
+        = g' , (gReduce , record { isProj = isProj-g' })
     where
         injective = msgSingle-injective (trans (sym g-inv₁) g-inv₂)
         g'₁≡g'₂ : g'₁ ≡ g'₂
@@ -141,8 +141,10 @@ completeness
                                                          rewrite _↔_.isProj g''Assoc t = refl
         ...                          | yes t≡p | _       = ⊥-elim (t≠p t≡p)
         ...                          | _       | yes t≡q = ⊥-elim (t≠q t≡q)
-        gReduce : (msgSingle r₁ s₁ r≠s l'₁ g'₁) - act →g (msgSingle r₁ s₁ r≠s l'₁ g'')
-        gReduce = →g-cont {l' = l'₁} {r≠s = r≠s} g'Reduce (¬≡-flip r≠p) (¬≡-flip r≠q) (¬≡-flip s≠p) (¬≡-flip s≠q)
+        gReduceAux : (msgSingle r₁ s₁ r≠s l'₁ g'₁) - act →g (msgSingle r₁ s₁ r≠s l'₁ (proj₁ ∃g''))
+        gReduceAux = →g-cont {l' = l'₁} {r≠s = r≠s} g'Reduce (¬≡-flip r≠p) (¬≡-flip r≠q) (¬≡-flip s≠p) (¬≡-flip s≠q)
+        gReduce : g - act →g g'
+        gReduce rewrite g-inv₁ = {! gReduceAux  !}
         isProj-g' : (t : Fin n) -> lookup c' t ≡ project g' t
         isProj-g' t
             with r₁ ≟ t   | s₁ ≟ t
