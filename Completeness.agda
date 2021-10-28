@@ -80,7 +80,7 @@ completeness
 
 ...    | inj₂ (r₁ , s₁ , r≠s , l'₁ , g'₁ , g-inv₁ , r≠p  , s≠p  , g'₁-proj-p)
        | inj₂ (r₂ , s₂ , _   , l'₂ , g'₂ , g-inv₂ , r≠q' , s≠q' , g'₂-proj-q)
-        = g' , (gReduce , record { isProj = isProj-g' })
+        = {!   !} {- g' , (gReduce , record { isProj = isProj-g' }) 
     where
         injective = msgSingle-injective (trans (sym g-inv₁) g-inv₂)
         g'₁≡g'₂ : g'₁ ≡ g'₂
@@ -162,3 +162,4 @@ completeness
         ...    | no _     | yes s≡t = {!   !}
         ...    | no r≠t   | no s≠t  = {!   !}
         ...    | yes r≡t  | yes s≡t = ⊥-elim (r≠s (trans r≡t (sym s≡t)))
+-}
