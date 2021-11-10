@@ -73,7 +73,10 @@ proj-inv-send :
     -> project {n} g p ≡ sendSingle q l lt'
     -> (∃[ p≠q ] ∃[ g' ] g ≡ msgSingle p q p≠q l g' × project g' p ≡ lt')
         ⊎ (∃[ r ] ∃[ s ] ∃[ r≠s ] ∃[ l' ] ∃[ g' ]
-            g ≡ msgSingle r s r≠s l' g' × r ≢ p × s ≢ p × project g' p ≡ sendSingle q l lt')
+            g ≡ msgSingle r s r≠s l' g' × 
+            r ≢ p × 
+            s ≢ p × 
+            project g' p ≡ sendSingle q l lt')
 proj-inv-send {g = g@endG} projSend = ⊥-elim (endL≢sendSingle projSend)
 proj-inv-send {n} {g = g@(msgSingle r s r≠s l' g')} {p} {q} {l} {lt'} projSend
     with r ≟ p   | s ≟ p
@@ -101,7 +104,10 @@ proj-inv-recv :
     -> project {n} g p ≡ recvSingle q l lt'
     -> (∃[ p≠q ] ∃[ g' ] g ≡ msgSingle q p p≠q l g' × project g' p ≡ lt')
         ⊎ (∃[ r ] ∃[ s ] ∃[ r≠s ] ∃[ l' ] ∃[ g' ]
-            g ≡ msgSingle r s r≠s l' g' × r ≢ p × s ≢ p × project g' p ≡ recvSingle q l lt')
+            g ≡ msgSingle r s r≠s l' g' × 
+            r ≢ p × 
+            s ≢ p × 
+            project g' p ≡ recvSingle q l lt')
 proj-inv-recv {g = g@endG} projRecv = ⊥-elim (endL≢recvSingle projRecv)
 proj-inv-recv {n} {g = g@(msgSingle r s r≠s l' g')} {p} {q} {l} {lt'} projRecv
     with r ≟ p   | s ≟ p
@@ -123,6 +129,43 @@ proj-inv-recv {n} {g = g@(msgSingle r s r≠s l' g')} {p} {q} {l} {lt'} projRecv
                 ≡⟨ cong (λ l -> msgSingle q p q≠p l g') l'≡l ⟩
                     msgSingle q p q≠p l g'
                 ∎
+
+proj-inv-send-recv :
+    ∀ { n : ℕ } { g p q l ltp' ltq' }
+    -> project {n} g p ≡ sendSingle q l ltp'
+    -> project {n} g q ≡ recvSingle p l ltq'
+    -> (∃[ p≠q ] ∃[ g' ] g ≡ msgSingle p q p≠q l g' × project g' p ≡ ltp' × project g' q ≡ ltq')
+        ⊎ (∃[ r ] ∃[ s ] ∃[ r≠s ] ∃[ l' ] ∃[ g' ]
+            g ≡ msgSingle r s r≠s l' g' × 
+            r ≢ p × 
+            s ≢ p × 
+            r ≢ q × 
+            s ≢ q × 
+            project g' p ≡ sendSingle q l ltp' × 
+            project g' q ≡ recvSingle p l ltq')
+proj-inv-send-recv {n} {g} {p} {q} {l} {ltp'} {ltq'} projSend projRecv 
+    with proj-inv-send {n} {g} projSend | proj-inv-recv {n} {g} projRecv 
+... | inj₁ (p≢q₁ , g₁' , g≡p→q , proj-g₁-p) 
+    | inj₁ (_ , g₂' , g≡p→q' , proj-g₂-q) 
+        with msgSingle-injective (trans (sym g≡p→q) g≡p→q')
+... | refl , refl , refl , refl  
+        = inj₁ (p≢q₁ , g₁' , g≡p→q , proj-g₁-p , proj-g₂-q)
+proj-inv-send-recv {n} {g} {p} {q} {l} {ltp'} {ltq'} projSend projRecv 
+    | inj₁ (_ , _ , g≡p→q , _)
+    | inj₂ (_ , s , _ , _ , _ , g≡r→s , _ , s≠q , _)
+        with msgSingle-injective (trans (sym g≡p→q) g≡r→s)
+... | refl , refl , refl , refl = ⊥-elim (s≠q refl)
+proj-inv-send-recv {n} {g} {p} {q} {l} {ltp'} {ltq'} projSend projRecv 
+    | inj₂ (r , _ , _ , _ , _ , g≡r→s , r≠p , _ , _)
+    | inj₁ (_ , _ , g≡p→q , _)
+        with msgSingle-injective (trans (sym g≡p→q) g≡r→s)
+... | refl , refl , refl , refl = ⊥-elim (r≠p refl)
+proj-inv-send-recv {n} {g} {p} {q} {l} {ltp'} {ltq'} projSend projRecv 
+    | inj₂ (r , s , r≠s , l' , g₁' , g≡r→s , r≠p , s≠p , proj-g₁-p) 
+    | inj₂ (_ , _ , _   , _  , g₂' , g≡r→s' , r≠q , s≠q , proj-g₂-q) 
+        with msgSingle-injective (trans (sym g≡r→s) g≡r→s')
+... | refl , refl , refl , refl
+        = inj₂ (r , s , r≠s , l' , g₁' , g≡r→s , r≠p , s≠p , r≠q , s≠q , proj-g₁-p , proj-g₂-q)
 
 config-gt-remove-prefix :
     ∀ { n : ℕ } { p q l p≠q g' }
