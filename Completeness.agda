@@ -57,7 +57,7 @@ completeness
                                    rewrite (sym (proj-prefix-other p q r {p≠q} {l} g' (¬≡-flip r≠p) (¬≡-flip r≠q)))
                                    rewrite _↔_.isProj assoc r
                                    rewrite g-inv = refl
-... | inj₂ (r , s , r≠s , l' , gSub , g-inv , r≠p  , s≠p , r≠q , s≠q , gSub-proj-p ,  g'-proj-q) 
+... | inj₂ (r , s , r≠s , l' , gSub , g-inv , r≠p  , s≠p , r≠q , s≠q , gSub-proj-p ,  g'-proj-q)
         = g' , (gReduce , {!   !})
         where
             remove-prefix-g = config-gt-remove-prefix g c assoc g-inv
@@ -67,13 +67,13 @@ completeness
             cSub' = (cSub [ p ]≔ lp') [ q ]≔ lq'
             cSub[p]≡lp : lp ≡ lookup cSub p
             cSub[p]≡lp rewrite lp≡c[p]
-                       rewrite proj₁ (proj₂ remove-prefix-g) 
+                       rewrite proj₁ (proj₂ remove-prefix-g)
                        rewrite sym (lookup∘update′ (¬≡-flip r≠p) c (project gSub r))
                        rewrite sym (lookup∘update′ (¬≡-flip s≠p) (c [ r ]≔ (project gSub r)) (project gSub s))
                        = refl
             cSub[q]≡lq : lq ≡ lookup cSub q
             cSub[q]≡lq rewrite lq≡c[q]
-                       rewrite proj₁ (proj₂ remove-prefix-g) 
+                       rewrite proj₁ (proj₂ remove-prefix-g)
                        rewrite sym (lookup∘update′ (¬≡-flip r≠q) c (project gSub r))
                        rewrite sym (lookup∘update′ (¬≡-flip s≠q) (c [ r ]≔ (project gSub r)) (project gSub s))
                        = refl
