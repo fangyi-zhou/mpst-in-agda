@@ -84,13 +84,11 @@ completeness
                             where
                                 cSub[p]≡lp : lp ≡ lookup cSub p
                                 cSub[p]≡lp rewrite lp≡c[p]
-                                        rewrite proj₁ (proj₂ remove-prefix-g)
                                         rewrite sym (lookup∘update′ (¬≡-flip r≠p) c (project gSub r))
                                         rewrite sym (lookup∘update′ (¬≡-flip s≠p) (c [ r ]≔ (project gSub r)) (project gSub s))
                                         = refl
                                 cSub[q]≡lq : lq ≡ lookup cSub q
                                 cSub[q]≡lq rewrite lq≡c[q]
-                                        rewrite proj₁ (proj₂ remove-prefix-g)
                                         rewrite sym (lookup∘update′ (¬≡-flip r≠q) c (project gSub r))
                                         rewrite sym (lookup∘update′ (¬≡-flip s≠q) (c [ r ]≔ (project gSub r)) (project gSub s))
                                         = refl
@@ -106,10 +104,53 @@ completeness
                 ...       | cSub , un-c' , g'↔c' | gSub' , gSubReduce , gSub'↔cSub'
                     with r ≟ t | s ≟ t
                 ...  | yes r≡t | yes s≡t = ⊥-elim (r≠s (trans r≡t (sym s≡t)))
-                ...  | no r≠t  | yes s≡t rewrite s≡t
-                                         rewrite proj-prefix-recv r t {l'} gSub' r≠t
-                                         = {!   !}
-                ...  | yes r≡t | no s≠t  rewrite proj-prefix-send t s {l'} gSub' (¬≡-flip s≠t)
-                                         = {!   !}
+                ...  | no r≠t  | yes s≡t rewrite sym s≡t
+                                         rewrite sym (_↔_.isProj gSub'↔cSub' s)
+                                         rewrite c→c'
+                                         rewrite lookup∘update′ s≠q (c [ p ]≔ lp') lq'
+                                         rewrite lookup∘update′ s≠p c lp'
+                                         rewrite _↔_.isProj assoc s
+                                         rewrite g-inv
+                                         rewrite proj-prefix-recv r s {l'} gSub r≠s
+                                         rewrite lookup∘update′ s≠q (((c [ r ]≔ project gSub r) [ s ]≔ project gSub s) [ p ]≔ lp') lq'
+                                         rewrite lookup∘update′ s≠p ((c [ r ]≔ project gSub r) [ s ]≔ project gSub s) lp'
+                                         rewrite lookup∘update s (c [ r ]≔ project gSub r) (project gSub s)
+                                         = refl
+                ...  | yes r≡t | no s≠t  rewrite sym r≡t
+                                         rewrite sym (_↔_.isProj gSub'↔cSub' r)
+                                         rewrite c→c'
+                                         rewrite lookup∘update′ r≠q (c [ p ]≔ lp') lq'
+                                         rewrite lookup∘update′ r≠p c lp'
+                                         rewrite _↔_.isProj assoc r
+                                         rewrite g-inv
+                                         rewrite proj-prefix-send r s {l'} gSub r≠s
+                                         rewrite lookup∘update′ r≠q (((c [ r ]≔ project gSub r) [ s ]≔ project gSub s) [ p ]≔ lp') lq'
+                                         rewrite lookup∘update′ r≠p ((c [ r ]≔ project gSub r) [ s ]≔ project gSub s) lp'
+                                         rewrite lookup∘update′ r≠s (c [ r ]≔ project gSub r) (project gSub s)
+                                         rewrite lookup∘update r c (project gSub r)
+                                         = refl
                 ...  | no r≠t  | no s≠t  rewrite proj-prefix-other r s t {r≠s} {l'} gSub' r≠t s≠t
-                                         = {!   !}
+                                         rewrite c→c'
+                                         with    p ≟ t | q ≟ t
+                ...                          | yes p≡t | yes q≡t = ⊥-elim (p≠q (trans p≡t (sym q≡t)))
+                ...                          | yes p≡t | no  q≠t rewrite sym p≡t
+                                                                 rewrite lookup∘update′ p≠q (c [ p ]≔ lp') lq'
+                                                                 rewrite lookup∘update p c lp'
+                                                                 rewrite sym (_↔_.isProj gSub'↔cSub' p)
+                                                                 rewrite lookup∘update′ p≠q (((c [ r ]≔ project gSub r) [ s ]≔ project gSub s) [ p ]≔ lp') lq'
+                                                                 rewrite lookup∘update p ((c [ r ]≔ project gSub r) [ s ]≔ project gSub s) lp'
+                                                                 = refl
+                ...                          | no  p≠t | yes q≡t rewrite sym q≡t
+                                                                 rewrite lookup∘update q (c [ p ]≔ lp') lq'
+                                                                 rewrite sym (_↔_.isProj gSub'↔cSub' q)
+                                                                 rewrite lookup∘update q (((c [ r ]≔ project gSub r) [ s ]≔ project gSub s) [ p ]≔ lp') lq'
+                                                                 = refl
+                ...                          | no  p≠t | no  q≠t rewrite lookup∘update′ (¬≡-flip q≠t) (c [ p ]≔ lp') lq'
+                                                                 rewrite lookup∘update′ (¬≡-flip p≠t) c lp'
+                                                                 rewrite sym (_↔_.isProj gSub'↔cSub' t)
+                                                                 rewrite lookup∘update′ (¬≡-flip q≠t) (((c [ r ]≔ project gSub r) [ s ]≔ project gSub s) [ p ]≔ lp') lq'
+                                                                 rewrite lookup∘update′ (¬≡-flip p≠t) ((c [ r ]≔ project gSub r) [ s ]≔ project gSub s) lp'
+                                                                 rewrite lookup∘update′ (¬≡-flip s≠t) (c [ r ]≔ project gSub r) (project gSub s)
+                                                                 rewrite lookup∘update′ (¬≡-flip r≠t) c (project gSub r)
+                                                                 = refl
+
