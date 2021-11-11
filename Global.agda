@@ -1,7 +1,7 @@
 open import Relation.Nullary using (¬_)
 open import Relation.Binary.PropositionalEquality using (_≡_; refl)
 open import Data.Fin using (Fin)
-open import Data.Nat using (ℕ)
+open import Data.Nat using (ℕ; suc)
 open import Data.Product using (_×_; _,_)
 
 open import Common
@@ -9,6 +9,14 @@ open import Common
 data Global (n : ℕ) : Set where
     endG : Global n
     msgSingle : (p q : Fin n) -> ¬ (p ≡ q) -> Label -> Global n -> Global n
+
+size-g : ∀ { n : ℕ } -> (g : Global n) -> ℕ
+size-g endG = 0
+size-g (msgSingle _ _ _ _ g') = suc (size-g g')
+
+size-g-reduces : ∀ { n : ℕ } { g p q p≠q l gSub } -> (g ≡ msgSingle {n} p q p≠q l gSub) -> (size-g g ≡ suc (size-g gSub))
+size-g-reduces {g = endG} ()
+size-g-reduces {g = msgSingle _ _ _ _ gSub} refl = refl
 
 msgSingle-subst-left :
     ∀ { n : ℕ } { p q p≠q l g' p' g }

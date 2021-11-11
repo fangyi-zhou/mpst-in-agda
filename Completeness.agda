@@ -1,5 +1,7 @@
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; _≟_)
+open import Data.Nat using (suc; zero)
+open import Data.Nat.Properties using (suc-injective; 0≢1+n)
 open import Data.Product using (∃-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Sum using (inj₁; inj₂)
 open import Data.Vec using (lookup; _[_]≔_)
@@ -13,9 +15,9 @@ open import Global
 open import Local
 open import Projection
 
-{-# TERMINATING #-}
 completeness :
-    ∀{ n } { act : Action n } { c c' g }
+    ∀{ n } { act : Action n } { c c' g g-size }
+    -> { g-size-is-size-g : g-size ≡ size-g g }
     -> g ↔ c
     -> c - act →c c'
     -> ∃[ g' ] ((g - act →g g') × (g' ↔ c'))
@@ -30,6 +32,8 @@ completeness
     {act}
     {c' = c'}
     {g = g}
+    {g-size = g-size}
+    {g-size-is-size-g = g-size-is-size-g}
     assoc
     (→c-comm {p} {q} {l} c p≠q lp≡c[p] lq≡c[q] c→c'
         lpReduce@(→l-send {lp = lp} {lp' = lp'} .p refl p≠q-p) lqReduce@(→l-recv {lp = lq} {lp' = lq'} .q refl p≠q-q)
@@ -59,46 +63,53 @@ completeness
                                    rewrite _↔_.isProj assoc r
                                    rewrite g-inv = refl
 ... | inj₂ (r , s , r≠s , l' , gSub , g-inv , r≠p  , s≠p , r≠q , s≠q , gSub-proj-p ,  g'-proj-q)
-        = g' , (gReduce , record { isProj = isProj-g' })
-        where
-            remove-prefix-g : ∃[ cSub ] ((cSub ≡ ((c [ r ]≔ (project gSub r)) [ s ]≔ (project gSub s))) × (gSub ↔ cSub))
-            remove-prefix-g = config-gt-remove-prefix g c assoc g-inv
-            completeness-gSub : ∃[ gSub' ] ((gSub - act →g gSub') × (gSub' ↔ ((((c [ r ]≔ project gSub r) [ s ]≔ project gSub s) [ p ]≔ lp') [ q ]≔ lq')))
-            completeness-gSub with remove-prefix-g
-            ...      | cSub , refl , gSub↔cSub = completeness gSub↔cSub cSub→cSub'
-                where
-                    cSub' = (cSub [ p ]≔ lp') [ q ]≔ lq'
-                    cSub→cSub' : cSub - act →c cSub'
-                    cSub→cSub' with remove-prefix-g
-                    ...      | cSub , refl , gSub↔cSub = →c-comm cSub p≠q cSub[p]≡lp cSub[q]≡lq refl lpReduce lqReduce
-                        where
-                            cSub[p]≡lp : lp ≡ lookup cSub p
-                            cSub[p]≡lp rewrite lp≡c[p]
-                                    rewrite proj₁ (proj₂ remove-prefix-g)
-                                    rewrite sym (lookup∘update′ (¬≡-flip r≠p) c (project gSub r))
-                                    rewrite sym (lookup∘update′ (¬≡-flip s≠p) (c [ r ]≔ (project gSub r)) (project gSub s))
-                                    = refl
-                            cSub[q]≡lq : lq ≡ lookup cSub q
-                            cSub[q]≡lq rewrite lq≡c[q]
-                                    rewrite proj₁ (proj₂ remove-prefix-g)
-                                    rewrite sym (lookup∘update′ (¬≡-flip r≠q) c (project gSub r))
-                                    rewrite sym (lookup∘update′ (¬≡-flip s≠q) (c [ r ]≔ (project gSub r)) (project gSub s))
-                                    = refl
-            gSub' = proj₁ completeness-gSub
-            g' = msgSingle r s r≠s l' gSub'
-            gReduce : g - act →g g'
-            gReduce with completeness-gSub
-            ... | gSub' , gSubReduce , gSub'↔cSub' rewrite g-inv
-                = →g-cont gSubReduce (¬≡-flip r≠p) (¬≡-flip r≠q) (¬≡-flip s≠p) (¬≡-flip s≠q)
-            isProj-g' : (t : Fin n) -> lookup c' t ≡ project g' t
-            isProj-g' t with remove-prefix-g | completeness-gSub
-            ...       | cSub , un-c' , g'↔c' | gSub' , gSubReduce , gSub'↔cSub'
-                with r ≟ t | s ≟ t
-            ...  | yes r≡t | yes s≡t = ⊥-elim (r≠s (trans r≡t (sym s≡t)))
-            ...  | no r≠t  | yes s≡t rewrite s≡t
-                                     rewrite proj-prefix-recv r t {l'} gSub' r≠t
-                                     = {!   !}
-            ...  | yes r≡t | no s≠t  rewrite proj-prefix-send t s {l'} gSub' (¬≡-flip s≠t)
-                                     = {!   !}
-            ...  | no r≠t  | no s≠t  rewrite proj-prefix-other r s t {r≠s} {l'} gSub' r≠t s≠t
-                                     = {!   !}
+    with g-size | size-g-reduces g-inv
+...     | zero  | confuse = ⊥-elim (0≢1+n (trans (g-size-is-size-g) confuse))
+...     | suc gSub-size | size-reduces = g' , (gReduce , record { isProj = isProj-g' })
+            where
+                remove-prefix-g : ∃[ cSub ] ((cSub ≡ ((c [ r ]≔ (project gSub r)) [ s ]≔ (project gSub s))) × (gSub ↔ cSub))
+                remove-prefix-g = config-gt-remove-prefix g c assoc g-inv
+                completeness-gSub : ∃[ gSub' ] ((gSub - act →g gSub') × (gSub' ↔ ((((c [ r ]≔ project gSub r) [ s ]≔ project gSub s) [ p ]≔ lp') [ q ]≔ lq')))
+                completeness-gSub with remove-prefix-g
+                ...      | cSub , refl , gSub↔cSub = completeness {g = gSub} {g-size = gSub-size} {gSub-size-is-size-gSub} gSub↔cSub cSub→cSub'
+                    where
+                        lem : suc gSub-size ≡ suc (size-g gSub)
+                        lem rewrite g-size-is-size-g = size-reduces
+                        gSub-size-is-size-gSub : gSub-size ≡ size-g gSub
+                        gSub-size-is-size-gSub = suc-injective lem
+                        cSub' = (cSub [ p ]≔ lp') [ q ]≔ lq'
+                        cSub→cSub' : cSub - act →c cSub'
+                        cSub→cSub' with remove-prefix-g
+                        ...      | cSub , refl , gSub↔cSub = →c-comm cSub p≠q cSub[p]≡lp cSub[q]≡lq refl lpReduce lqReduce
+                            where
+                                cSub[p]≡lp : lp ≡ lookup cSub p
+                                cSub[p]≡lp rewrite lp≡c[p]
+                                        rewrite proj₁ (proj₂ remove-prefix-g)
+                                        rewrite sym (lookup∘update′ (¬≡-flip r≠p) c (project gSub r))
+                                        rewrite sym (lookup∘update′ (¬≡-flip s≠p) (c [ r ]≔ (project gSub r)) (project gSub s))
+                                        = refl
+                                cSub[q]≡lq : lq ≡ lookup cSub q
+                                cSub[q]≡lq rewrite lq≡c[q]
+                                        rewrite proj₁ (proj₂ remove-prefix-g)
+                                        rewrite sym (lookup∘update′ (¬≡-flip r≠q) c (project gSub r))
+                                        rewrite sym (lookup∘update′ (¬≡-flip s≠q) (c [ r ]≔ (project gSub r)) (project gSub s))
+                                        = refl
+                g' : Global n
+                g' with completeness-gSub
+                ... | gSub' , _ , _ = msgSingle r s r≠s l' gSub'
+                gReduce : g - act →g g'
+                gReduce with completeness-gSub
+                ... | gSub' , gSubReduce , gSub'↔cSub' rewrite g-inv
+                    = →g-cont gSubReduce (¬≡-flip r≠p) (¬≡-flip r≠q) (¬≡-flip s≠p) (¬≡-flip s≠q)
+                isProj-g' : (t : Fin n) -> lookup c' t ≡ project g' t
+                isProj-g' t with remove-prefix-g | completeness-gSub
+                ...       | cSub , un-c' , g'↔c' | gSub' , gSubReduce , gSub'↔cSub'
+                    with r ≟ t | s ≟ t
+                ...  | yes r≡t | yes s≡t = ⊥-elim (r≠s (trans r≡t (sym s≡t)))
+                ...  | no r≠t  | yes s≡t rewrite s≡t
+                                         rewrite proj-prefix-recv r t {l'} gSub' r≠t
+                                         = {!   !}
+                ...  | yes r≡t | no s≠t  rewrite proj-prefix-send t s {l'} gSub' (¬≡-flip s≠t)
+                                         = {!   !}
+                ...  | no r≠t  | no s≠t  rewrite proj-prefix-other r s t {r≠s} {l'} gSub' r≠t s≠t
+                                         = {!   !}
