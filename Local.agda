@@ -1,5 +1,4 @@
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
-open import Relation.Nullary using (¬_)
 open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ)
 open import Data.Product using (_×_; _,_)
@@ -37,20 +36,20 @@ data _-_→l_ {n : ℕ} : (Fin n × Local n) -> Action n -> (Fin n × Local n) -
         ∀ { q lbl lp lp' }
         -> (p : Fin n)
         -> (lp ≡ sendSingle q lbl lp')
-        -> (p≠q : ¬ (p ≡ q))
+        -> (p≠q : (p ≢ q))
         -> (p , lp) - (action p q p≠q lbl) →l (p , lp')
     →l-recv :
         ∀ { q lbl lp lp' }
         -> (p : Fin n)
         -> (lp ≡ recvSingle q lbl lp')
-        -> (q≠p : ¬ (q ≡ p))
+        -> (q≠p : (q ≢ p))
         -> (p , lp) - (action q p q≠p lbl) →l (p , lp')
 
 data _-_→c_ {n : ℕ} : Configuration n -> Action n -> Configuration n -> Set where
     →c-comm :
         ∀ { p q l lp lp' lq lq' c' p≠q-p p≠q-q }
         -> (c : Configuration n)
-        -> (p≠q : ¬ (p ≡ q))
+        -> (p≠q : (p ≢ q))
         -> (lp ≡ lookup c p)
         -> (lq ≡ lookup c q)
         -> (c' ≡ (c [ p ]≔ lp') [ q ]≔ lq')
