@@ -7,45 +7,48 @@ open import Common
 
 data Global (n : ℕ) : Set where
     endG : Global n
-    msgSingle : (p q : Fin n) -> (p ≢ q) -> Label -> Global n -> Global n
+    msgSingle : (p q : Fin n) -> p ≢ q -> Label -> Global n -> Global n
 
 size-g : ∀ { n : ℕ } -> (g : Global n) -> ℕ
 size-g endG = 0
-size-g (msgSingle _ _ _ _ g') = suc (size-g g')
+size-g (msgSingle _ _ _ _ gSub) = suc (size-g gSub)
 
-size-g-reduces : ∀ { n : ℕ } { g p q p≠q l gSub } -> (g ≡ msgSingle {n} p q p≠q l gSub) -> (size-g g ≡ suc (size-g gSub))
+size-g-reduces :
+    ∀ { n : ℕ } { g p q p≢q l gSub }
+    -> g ≡ msgSingle {n} p q p≢q l gSub
+    -> size-g g ≡ suc (size-g gSub)
 size-g-reduces {g = endG} ()
 size-g-reduces {g = msgSingle _ _ _ _ gSub} refl = refl
 
 msgSingle-subst-left :
-    ∀ { n : ℕ } { p q p≠q l g' p' g }
-    -> g ≡ msgSingle {n} p q p≠q l g'
-    -> (p≡p' : p ≡ p')
-    -> g ≡ msgSingle {n} p' q (≢-subst-left p≠q p≡p') l g'
+    ∀ { n : ℕ } { p q p≢q l gSub p′ g }
+    -> g ≡ msgSingle {n} p q p≢q l gSub
+    -> (p≡p′ : p ≡ p′)
+    -> g ≡ msgSingle {n} p′ q (≢-subst-left p≢q p≡p′) l gSub
 msgSingle-subst-left refl refl = refl
 
 msgSingle-subst-right :
-    ∀ { n : ℕ } { p q p≠q l g' q' g }
-    -> g ≡ msgSingle {n} p q p≠q l g'
-    -> (q≡q' : q ≡ q')
-    -> g ≡ msgSingle {n} p q' (≢-subst-right p≠q q≡q') l g'
+    ∀ { n : ℕ } { p q p≢q l gSub q′ g }
+    -> g ≡ msgSingle {n} p q p≢q l gSub
+    -> (q≡q′ : q ≡ q′)
+    -> g ≡ msgSingle {n} p q′ (≢-subst-right p≢q q≡q′) l gSub
 msgSingle-subst-right refl refl = refl
 
 msgSingle-injective :
-    ∀ { n : ℕ } { p q p≠q l g' p' q' p'≠q' l' g'' }
-    -> msgSingle {n} p q p≠q l g' ≡ msgSingle p' q' p'≠q' l' g''
-    -> p ≡ p' × q ≡ q' × l ≡ l' × g' ≡ g''
-msgSingle-injective refl = refl , (refl , (refl , refl))
+    ∀ { n : ℕ } { p q p≢q l gSub p′ q′ p′≢q′ l′ gSub′ }
+    -> msgSingle {n} p q p≢q l gSub ≡ msgSingle p′ q′ p′≢q′ l′ gSub′
+    -> p ≡ p′ × q ≡ q′ × l ≡ l′ × gSub ≡ gSub′
+msgSingle-injective refl = refl , refl , refl , refl
 
 data _-_→g_ {n : ℕ} : Global n -> Action n -> Global n -> Set where
     →g-prefix :
-        ∀ { p q l g' p≠q p≠q' }
-        -> (msgSingle p q p≠q l g') - (action p q p≠q' l) →g g'
+        ∀ { p q l gSub p≢q p≢q′ }
+        -> (msgSingle p q p≢q l gSub) - (action p q p≢q′ l) →g gSub
     →g-cont :
-        ∀ { p q l l' r s g₁ g₂ p≠q r≠s }
-        -> g₁ - (action p q p≠q l) →g g₂
-        -> (p ≢ r)
-        -> (q ≢ r)
-        -> (p ≢ s)
-        -> (q ≢ s)
-        -> (msgSingle r s r≠s l' g₁) - (action p q p≠q l) →g (msgSingle r s r≠s l' g₂)
+        ∀ { p q l l′ r s gSub gSub′ p≢q r≢s }
+        -> gSub - (action p q p≢q l) →g gSub′
+        -> p ≢ r
+        -> q ≢ r
+        -> p ≢ s
+        -> q ≢ s
+        -> (msgSingle r s r≢s l′ gSub) - (action p q p≢q l) →g (msgSingle r s r≢s l′ gSub′)
