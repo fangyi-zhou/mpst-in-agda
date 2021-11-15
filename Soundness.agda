@@ -104,7 +104,7 @@ soundness
           rewrite lookup∘update′ (¬≡-flip q≢r) (cSub [ p ]≔ lp′) lq′
           rewrite lookup∘update′ (¬≡-flip p≢r) cSub lp′
           rewrite _↔_.isProj assoc r
-          rewrite proj-prefix-send r s {l′} gSub r≢s
+          rewrite proj-prefix-send {l = l′} r s gSub r≢s
           rewrite lookup∘update′ r≢s (c [ r ]≔ project gSub r) (project gSub s)
           rewrite lookup∘update r c (project gSub r)
           = refl
@@ -113,7 +113,7 @@ soundness
           rewrite lookup∘update′ (¬≡-flip q≢s) (cSub [ p ]≔ lp′) lq′
           rewrite lookup∘update′ (¬≡-flip p≢s) cSub lp′
           rewrite _↔_.isProj assoc s
-          rewrite proj-prefix-recv r s {l′} gSub r≢s
+          rewrite proj-prefix-recv {l = l′} r s gSub r≢s
           rewrite lookup∘update s (c [ r ]≔ project gSub r) (project gSub s)
           = refl
         c→c′ : (cSub′ [ r ]≔ lr′) [ s ]≔ ls′ ≡ (c [ p ]≔ lp′) [ q ]≔ lq′

@@ -55,7 +55,7 @@ completeness
       ...    | no r≢p  | no r≢q
         rewrite lookup∘update′ r≢q (c [ p ]≔ lp′) lq′
         rewrite lookup∘update′ r≢p c lp′
-        rewrite sym (proj-prefix-other p q r {p≢q} {l} g′ (¬≡-flip r≢p) (¬≡-flip r≢q))
+        rewrite sym (proj-prefix-other {l = l} p q r {p≢q} g′ (¬≡-flip r≢p) (¬≡-flip r≢q))
         rewrite _↔_.isProj assoc r
         = refl
 ... | inj₂ (r , s , r≢s , l′ , gSub , refl , r≢p , s≢p , r≢q , s≢q , gSub-proj-p , gSub-proj-q)
@@ -110,7 +110,7 @@ completeness
               rewrite lookup∘update′ s≢q (c [ p ]≔ lp′) lq′
               rewrite lookup∘update′ s≢p c lp′
               rewrite _↔_.isProj assoc s
-              rewrite proj-prefix-recv r s {l′} gSub r≢s
+              rewrite proj-prefix-recv {l = l′} r s gSub r≢s
               rewrite lookup∘update′ s≢q (((c [ r ]≔ lrSub) [ s ]≔ lsSub) [ p ]≔ lp′) lq′
               rewrite lookup∘update′ s≢p ((c [ r ]≔ lrSub) [ s ]≔ lsSub) lp′
               rewrite lookup∘update s (c [ r ]≔ lrSub) lsSub
@@ -120,14 +120,14 @@ completeness
               rewrite lookup∘update′ r≢q (c [ p ]≔ lp′) lq′
               rewrite lookup∘update′ r≢p c lp′
               rewrite _↔_.isProj assoc r
-              rewrite proj-prefix-send r s {l′} gSub r≢s
+              rewrite proj-prefix-send {l = l′} r s gSub r≢s
               rewrite lookup∘update′ r≢q (((c [ r ]≔ lrSub) [ s ]≔ lsSub) [ p ]≔ lp′) lq′
               rewrite lookup∘update′ r≢p ((c [ r ]≔ lrSub) [ s ]≔ lsSub) lp′
               rewrite lookup∘update′ r≢s (c [ r ]≔ lrSub) lsSub
               rewrite lookup∘update r c lrSub
               = refl
           ... | no r≢t  | no s≢t
-              rewrite proj-prefix-other r s t {r≢s} {l′} gSub′ r≢t s≢t
+              rewrite proj-prefix-other {l = l′} r s t {r≢s} gSub′ r≢t s≢t
               with p ≟ t  | q ≟ t
           ...   | yes refl | yes refl = ⊥-elim (p≢q refl)
           ...   | yes refl | no  q≢t

@@ -6,29 +6,30 @@ open import Data.Vec using (Vec; lookup; _[_]≔_)
 
 open import Common
 
-private
-  variable
-    n : ℕ
-
 data Local (n : ℕ) : Set where
   endL : Local n
   sendSingle recvSingle : Fin n -> Label -> Local n -> Local n
 
-endL≢sendSingle : ∀ { q l lSub } -> endL {n} ≢ sendSingle q l lSub
+private
+  variable
+    n : ℕ
+    p p′ q : Fin n
+    l l′ : Label
+    lSub lSub′ : Local n
+
+endL≢sendSingle : ∀ { lSub } -> endL {n} ≢ sendSingle q l lSub
 endL≢sendSingle ()
 
-endL≢recvSingle : ∀ { q l lSub } -> endL {n} ≢ recvSingle q l lSub
+endL≢recvSingle : ∀ { lSub } -> endL {n} ≢ recvSingle q l lSub
 endL≢recvSingle ()
 
 sendSingle-injective :
-  ∀ { p l lSub p′ l′ lSub′ }
-  -> sendSingle {n} p l lSub ≡ sendSingle p′ l′ lSub′
+  sendSingle {n} p l lSub ≡ sendSingle p′ l′ lSub′
   -> p ≡ p′ × l ≡ l′ × lSub ≡ lSub′
 sendSingle-injective refl = refl , refl , refl
 
 recvSingle-injective :
-  ∀ { p l lSub p′ l′ lSub′ }
-  -> recvSingle {n} p l lSub ≡ recvSingle p′ l′ lSub′
+  recvSingle {n} p l lSub ≡ recvSingle p′ l′ lSub′
   -> p ≡ p′ × l ≡ l′ × lSub ≡ lSub′
 recvSingle-injective refl = refl , refl , refl
 
@@ -37,21 +38,21 @@ Configuration n = Vec (Local n) n
 
 data _-_→l_ {n : ℕ} : (Fin n × Local n) -> Action n -> (Fin n × Local n) -> Set where
   →l-send :
-    ∀ { q lbl lp lpSub }
+    ∀ { lp lpSub }
     -> (p : Fin n)
-    -> lp ≡ sendSingle q lbl lpSub
+    -> lp ≡ sendSingle q l lpSub
     -> (p≢q : p ≢ q)
-    -> (p , lp) - (action p q p≢q lbl) →l (p , lpSub)
+    -> (p , lp) - (action p q p≢q l) →l (p , lpSub)
   →l-recv :
-    ∀ { q lbl lp lpSub }
+    ∀ { lp lpSub }
     -> (p : Fin n)
-    -> lp ≡ recvSingle q lbl lpSub
+    -> lp ≡ recvSingle q l lpSub
     -> (q≢p : q ≢ p)
-    -> (p , lp) - (action q p q≢p lbl) →l (p , lpSub)
+    -> (p , lp) - (action q p q≢p l) →l (p , lpSub)
 
 data _-_→c_ {n : ℕ} : Configuration n -> Action n -> Configuration n -> Set where
   →c-comm :
-    ∀ { p q l lp lp′ lq lq′ c′ p≢q-p p≢q-q }
+    ∀ { lp lp′ lq lq′ c′ p≢q-p p≢q-q }
     -> (c : Configuration n)
     -> (p≢q : p ≢ q)
     -> lp ≡ lookup c p
