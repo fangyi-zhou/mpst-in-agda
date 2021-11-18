@@ -36,9 +36,12 @@ completeness
   {g-size-is-size-g = g-size-is-size-g}
   assoc
   (→c-comm {p} {q} {l} c p≢q lp≡c[p] lq≡c[q] refl
-    lpReduce@(→l-send {lp = lp} {lpSub = lp′} .p refl p≢q-p) lqReduce@(→l-recv {lp = lq} {lpSub = lq′} .q refl p≢q-q)
+    lpReduce@(→l-send {lp = lp} {lpSub = lp′} .p refl p≢q-p)
+    lqReduce@(→l-recv {lp = lq} {lpSub = lq′} .q refl p≢q-q)
   )
-  with proj-inv-send-recv {g = g} (trans (sym (_↔_.isProj assoc p)) (sym lp≡c[p])) (trans (sym (_↔_.isProj assoc q)) (sym lq≡c[q]))
+  with proj-inv-send-recv {g = g}
+    (trans (sym (_↔_.isProj assoc p)) (sym lp≡c[p]))
+    (trans (sym (_↔_.isProj assoc q)) (sym lq≡c[q]))
 ... | inj₁ (p≢q , g′ , refl , refl , refl)
     = g′ , →g-prefix , record { isProj = isProj-g′ }
     where
@@ -71,7 +74,8 @@ completeness
           remove-prefix-g = config-gt-remove-prefix g c assoc refl
           completeness-gSub : ∃[ gSub′ ] gSub - act →g gSub′ × gSub′ ↔ ((((c [ r ]≔ lrSub) [ s ]≔ lsSub) [ p ]≔ lp′) [ q ]≔ lq′)
           completeness-gSub with remove-prefix-g
-          ... | cSub , refl , gSub↔cSub = completeness {g = gSub} {g-size = gSub-size} {gSub-size-is-size-gSub} gSub↔cSub cSub→cSub′
+          ... | cSub , refl , gSub↔cSub
+            = completeness {g = gSub} {g-size = gSub-size} {gSub-size-is-size-gSub} gSub↔cSub cSub→cSub′
             where
               gSub-size-is-size-gSub : gSub-size ≡ size-g gSub
               gSub-size-is-size-gSub = suc-injective g-size-is-size-g

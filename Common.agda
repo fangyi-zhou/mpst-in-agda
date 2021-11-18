@@ -9,18 +9,19 @@ private
   variable
     l : Level
     A : Set l
+    x x′ y : A
 
 Label : Set
 Label = ℕ
 
 data Action (n : ℕ) : Set where
-  action : (p q : Fin n) -> (p ≢ q) -> Label -> Action n
+  action : (p q : Fin n) -> p ≢ q -> Label -> Action n
 
-¬≡-flip : ∀ { x y : A } -> (x ≢ y) -> (y ≢ x)
+¬≡-flip : x ≢ y -> y ≢ x
 ¬≡-flip x≢y = λ y≡x → x≢y (sym y≡x)
 
-≢-subst-left : ∀ { x x′ y : A } -> x ≢ y -> x ≡ x′ -> x′ ≢ y
+≢-subst-left : x ≢ y -> x ≡ x′ -> x′ ≢ y
 ≢-subst-left x≢y refl = x≢y
 
-≢-subst-right : ∀ { x x′ y : A } -> y ≢ x -> x ≡ x′ -> y ≢ x′
+≢-subst-right : y ≢ x -> x ≡ x′ -> y ≢ x′
 ≢-subst-right y≢x refl = y≢x
