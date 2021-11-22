@@ -19,7 +19,7 @@ jobs:
       uses: fangyi-zhou/setup-agda-action@main
       with:
         agda-ref: ${{ matrix.agda-ref }}
-        ghc-ver: ${{ matrix.ghc-ver }}
+        ghc-version: ${{ matrix.ghc-ver }}
         stdlib-ref: ${{ matrix.stdlib-ref }}
 
     - name: Checkout my library
