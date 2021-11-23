@@ -16,7 +16,7 @@ jobs:
 
     steps:
     - name: Setup Agda
-      uses: fangyi-zhou/setup-agda-action@main
+      uses: fangyi-zhou/setup-agda-action@v0.1
       with:
         agda-ref: ${{ matrix.agda-ref }}
         ghc-version: ${{ matrix.ghc-ver }}
