@@ -1,5 +1,6 @@
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
-open import Data.Fin using (Fin)
+open import Relation.Nullary.Decidable using (False; toWitnessFalse)
+open import Data.Fin using (Fin; _≟_)
 open import Data.Nat using (ℕ; suc)
 open import Data.Product using (_×_; _,_)
 
@@ -15,6 +16,9 @@ private
     p p′ q q′ r s : Fin n
     l l′ : Label
     g gSub gSub′ : Global n
+
+msgSingle′ : (p q : Fin n) -> {False (p ≟ q)} -> Label -> Global n -> Global n
+msgSingle′ p q {p≢q} l gSub = msgSingle p q (toWitnessFalse p≢q) l gSub
 
 size-g : ∀ { n : ℕ } -> (g : Global n) -> ℕ
 size-g endG = 0

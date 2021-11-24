@@ -31,7 +31,7 @@ l′ : Label
 l′ = 1
 
 g₁ : Global n
-g₁ = msgSingle p q (λ ()) l endG
+g₁ = msgSingle′ p q l endG
 
 lp : Local n
 lp = sendSingle q l endL
@@ -46,16 +46,16 @@ g₁-proj-q-is-lq : project g₁ q ≡ lq
 g₁-proj-q-is-lq = refl
 
 p→q : Action n
-p→q = action p q (λ ()) l
+p→q = action′ p q l
 
 r→s : Action n
-r→s = action r s (λ ()) l′
+r→s = action′ r s l′
 
 g₂ : Global n
-g₂ = msgSingle r s (λ ()) l′ g₁
+g₂ = msgSingle′ r s l′ g₁
 
 g₂′ : Global n
-g₂′ = msgSingle r s (λ ()) l′ endG
+g₂′ = msgSingle′ r s l′ endG
 
 g₁→end : g₁ - p→q →g endG
 g₁→end = →g-prefix
