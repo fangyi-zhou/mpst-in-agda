@@ -1,3 +1,5 @@
+{-# OPTIONS --guardedness #-}
+
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
 open import Data.Fin using (Fin)
 open import Data.Nat using (ℕ)
@@ -6,9 +8,17 @@ open import Data.Vec using (Vec; lookup; _[_]≔_)
 
 open import Common
 
-data Local (n : ℕ) : Set where
+data Local (n : ℕ) : Set
+record ∞Local (n : ℕ) : Set
+
+data Local n where
   endL : Local n
   sendSingle recvSingle : Fin n -> Label -> Local n -> Local n
+
+record ∞Local n where
+  coinductive
+  field force : Local n
+open ∞Local public
 
 private
   variable

@@ -1,3 +1,5 @@
+{-# OPTIONS --guardedness #-}
+
 open import Common
 open import Global
 open import Projection

@@ -1,3 +1,5 @@
+{-# OPTIONS --guardedness #-}
+
 import Common
 import Global
 import Local

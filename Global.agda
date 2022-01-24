@@ -1,3 +1,5 @@
+{-# OPTIONS --guardedness #-}
+
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
 open import Relation.Nullary.Decidable using (False; toWitnessFalse)
 open import Data.Fin using (Fin; _≟_)
@@ -6,9 +8,17 @@ open import Data.Product using (_×_; _,_)
 
 open import Common
 
-data Global (n : ℕ) : Set where
+data Global (n : ℕ) : Set
+record ∞Global (n : ℕ) : Set
+
+data Global n where
   endG : Global n
   msgSingle : (p q : Fin n) -> p ≢ q -> Label -> Global n -> Global n
+
+record ∞Global n where
+  coinductive
+  field force : Global n
+open ∞Global public
 
 private
   variable
