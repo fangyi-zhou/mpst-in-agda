@@ -71,6 +71,8 @@ record _↔_ { n : ℕ } (g : Global n) (c : Configuration n) : Set where
   field
     isProj : ∀(p : Fin n) -> lookup c p ≡ project g p
 
+open _↔_ public
+
 proj-inv-send :
   project {n} g p ≡ sendSingle q l lSub
   -> ∃[ p≢q ] ∃[ gSub ] g ≡ msgSingle p q p≢q l gSub × project gSub p ≡ lSub
@@ -166,5 +168,5 @@ config-gt-remove-prefix {n} {p} {q} {_} {p≢q} {gSub} g c assoc refl
       ... | no p≢r  | no  q≢r
           rewrite lookup∘update′ (¬≡-flip q≢r) (c [ p ]≔ lpSub) lqSub
           rewrite lookup∘update′ (¬≡-flip p≢r) c lpSub
-          rewrite _↔_.isProj assoc r
+          rewrite isProj assoc r
           = proj-prefix-other p q r gSub p≢r q≢r

@@ -33,10 +33,10 @@ soundness
     g′↔c′ : g′ ↔ c′
     g′↔c′ = proj₂ (proj₂ config-without-prefix)
     lpReduce : (p , lookup c p) - act →l (p , project g′ p)
-    lpReduce rewrite _↔_.isProj assoc p
+    lpReduce rewrite isProj assoc p
       = →l-send p (proj-prefix-send p q g′ p≢q-gt) p≢q
     lqReduce : (q , lookup c q) - act →l (q , project g′ q)
-    lqReduce rewrite _↔_.isProj assoc q
+    lqReduce rewrite isProj assoc q
       = →l-recv q (proj-prefix-recv p q g′ p≢q-gt) p≢q
 soundness
   {n = n}
@@ -72,15 +72,15 @@ soundness
         rewrite sym r≡t
         rewrite lookup∘update′ r≢s (cSub′ [ r ]≔ sendSingle s l′ (lookup cSub′ r)) (recvSingle r l′ (lookup cSub′ s))
         rewrite lookup∘update r cSub′ (sendSingle s l′ (lookup cSub′ r))
-        rewrite _↔_.isProj gSub′↔cSub′ r = refl
+        rewrite isProj gSub′↔cSub′ r = refl
     ...   | no _     | yes s≡t
         rewrite sym s≡t
         rewrite lookup∘update s (cSub′ [ r ]≔ sendSingle s l′ (lookup cSub′ r)) (recvSingle r l′ (lookup cSub′ s))
-        rewrite _↔_.isProj gSub′↔cSub′ s = refl
+        rewrite isProj gSub′↔cSub′ s = refl
     ...   | no r≢t   | no s≢t
         rewrite lookup∘update′ (¬≡-flip s≢t) (cSub′ [ r ]≔ sendSingle s l′ (lookup cSub′ r)) (recvSingle r l′ (lookup cSub′ s))
         rewrite lookup∘update′ (¬≡-flip r≢t) cSub′ (sendSingle s l′ (lookup cSub′ r))
-        rewrite _↔_.isProj gSub′↔cSub′ t = refl
+        rewrite isProj gSub′↔cSub′ t = refl
     ...   | yes refl | yes refl = ⊥-elim (r≢s refl)
     assoc′ : g′ ↔ c′
     assoc′ = record { isProj = isProj-g′ }
@@ -103,7 +103,7 @@ soundness
         lr′≡c[r]
           rewrite lookup∘update′ (¬≡-flip q≢r) (cSub [ p ]≔ lp′) lq′
           rewrite lookup∘update′ (¬≡-flip p≢r) cSub lp′
-          rewrite _↔_.isProj assoc r
+          rewrite isProj assoc r
           rewrite proj-prefix-send {l = l′} r s gSub r≢s
           rewrite lookup∘update′ r≢s (c [ r ]≔ project gSub r) (project gSub s)
           rewrite lookup∘update r c (project gSub r)
@@ -112,7 +112,7 @@ soundness
         ls′≡c[s]
           rewrite lookup∘update′ (¬≡-flip q≢s) (cSub [ p ]≔ lp′) lq′
           rewrite lookup∘update′ (¬≡-flip p≢s) cSub lp′
-          rewrite _↔_.isProj assoc s
+          rewrite isProj assoc s
           rewrite proj-prefix-recv {l = l′} r s gSub r≢s
           rewrite lookup∘update s (c [ r ]≔ project gSub r) (project gSub s)
           = refl
