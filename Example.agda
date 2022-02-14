@@ -47,6 +47,9 @@ lq = recvSingle p l endL
 g₁-proj-q-is-lq : project g₁ q ≡ lq
 g₁-proj-q-is-lq = refl
 
+∞g : ∞Global n
+∞g = msgSingle′ p q l ∞g
+
 p→q : Action n
 p→q = action′ p q l
 

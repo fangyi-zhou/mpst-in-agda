@@ -13,10 +13,11 @@ record ∞Local (n : ℕ) : Set
 
 data Local n where
   endL : Local n
-  sendSingle recvSingle : Fin n -> Label -> Local n -> Local n
+  sendSingle recvSingle : Fin n -> Label -> ∞Local n -> Local n
 
 record ∞Local n where
   coinductive
+  constructor box
   field force : Local n
 open ∞Local public
 
@@ -34,12 +35,12 @@ endL≢recvSingle : ∀ { lSub } -> endL {n} ≢ recvSingle q l lSub
 endL≢recvSingle ()
 
 sendSingle-injective :
-  sendSingle {n} p l lSub ≡ sendSingle p′ l′ lSub′
+  sendSingle {n} p l (box lSub) ≡ sendSingle p′ l′ (box lSub′)
   -> p ≡ p′ × l ≡ l′ × lSub ≡ lSub′
 sendSingle-injective refl = refl , refl , refl
 
 recvSingle-injective :
-  recvSingle {n} p l lSub ≡ recvSingle p′ l′ lSub′
+  recvSingle {n} p l (box lSub) ≡ recvSingle p′ l′ (box lSub′)
   -> p ≡ p′ × l ≡ l′ × lSub ≡ lSub′
 recvSingle-injective refl = refl , refl , refl
 
@@ -50,13 +51,13 @@ data _-_→l_ {n : ℕ} : (Fin n × Local n) -> Action n -> (Fin n × Local n) -
   →l-send :
     ∀ { lp lpSub }
     -> (p : Fin n)
-    -> lp ≡ sendSingle q l lpSub
+    -> lp ≡ sendSingle q l (box lpSub)
     -> (p≢q : p ≢ q)
     -> (p , lp) - (action p q p≢q l) →l (p , lpSub)
   →l-recv :
     ∀ { lp lpSub }
     -> (p : Fin n)
-    -> lp ≡ recvSingle q l lpSub
+    -> lp ≡ recvSingle q l (box lpSub)
     -> (q≢p : q ≢ p)
     -> (p , lp) - (action q p q≢p l) →l (p , lpSub)
 
@@ -67,7 +68,7 @@ data _-_→c_ {n : ℕ} : Configuration n -> Action n -> Configuration n -> Set 
     -> (p≢q : p ≢ q)
     -> lp ≡ lookup c p
     -> lq ≡ lookup c q
-    -> c′ ≡ c [ p ]≔ lp′ [ q ]≔ lq′
+    -> c′ ≡ c [ p ]≔  lp′ [ q ]≔  lq′
     -> (p , lp) - (action p q p≢q-p l) →l (p , lp′)
     -> (q , lq) - (action p q p≢q-q l) →l (q , lq′)
     -> c - (action p q p≢q l) →c  c′
