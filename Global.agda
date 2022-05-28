@@ -18,12 +18,17 @@ private
     n : ℕ
     t : ℕ
     p p′ q q′ r s : Fin n
+    p≢q : p ≢ q
     l l′ : Label
     g gSub gSub′ : Global n t
 
 msgSingle′ : (p q : Fin n) -> {False (p ≟ q)} -> Label -> Global n t -> Global n t
 msgSingle′ p q {p≢q} l gSub = msgSingle p q (toWitnessFalse p≢q) l gSub
 
+data GuardedG {n : ℕ} (t : ℕ) : (g : Global n t) -> Set where
+  end : GuardedG t endG
+  msg : GuardedG t gSub -> GuardedG t (msgSingle p q p≢q l gSub)
+  rec : GuardedG (suc t) gSub -> GuardedG t (muG gSub)
 {-
 size-g : ∀ { n : ℕ } -> (g : Global n t) -> ℕ
 size-g endG = 0

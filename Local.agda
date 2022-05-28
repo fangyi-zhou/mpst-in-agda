@@ -18,8 +18,15 @@ private
     n : ℕ
     t : ℕ
     p p′ q : Fin n
+    p≢q : p ≢ q
     l l′ : Label
     lSub lSub′ : Local n t
+
+data GuardedL {n : ℕ} (t : ℕ) : (l : Local n t) -> Set where
+  end : GuardedL t endL
+  send : GuardedL t lSub -> GuardedL t (sendSingle p l lSub)
+  recv : GuardedL t lSub -> GuardedL t (recvSingle p l lSub)
+  rec : GuardedL (suc t) lSub -> GuardedL t (muL lSub)
 
 {-
 endL≢sendSingle : ∀ { lSub } -> endL {n} ≢ sendSingle q l lSub
