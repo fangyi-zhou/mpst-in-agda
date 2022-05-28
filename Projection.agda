@@ -21,9 +21,9 @@ private
     l : Label
     p q : Fin n
     g gSub : Global n t
-    lSub : Local n
+    lSub : Local n t
 
-project : Global n t -> Fin n -> Local n
+project : Global n t -> Fin n -> Local n t
 project endG _
   = endL
 project (msgSingle p q p≢q l gSub) r
@@ -32,6 +32,8 @@ project (msgSingle p q p≢q l gSub) r
 ... | no _     | yes _    = recvSingle p l (project gSub r)
 ... | no _     | no _     = project gSub r
 ... | yes refl | yes refl = ⊥-elim (p≢q refl)
+project (muG g) r = muL (project g r)
+project (recG n) r = recL n
 
 {-
 proj-prefix-other :
