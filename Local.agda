@@ -1,22 +1,27 @@
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
 open import Data.Fin using (Fin)
-open import Data.Nat using (ℕ)
+open import Data.Nat using (ℕ; suc; zero)
 open import Data.Product using (_×_; _,_)
 open import Data.Vec using (Vec; lookup; _[_]≔_)
 
 open import Common
 
-data Local (n : ℕ) : Set where
-  endL : Local n
-  sendSingle recvSingle : Fin n -> Label -> Local n -> Local n
+{- n sets the number of participants, t is the deBruijn index of recursive variable -}
+data Local (n : ℕ) (t : ℕ) : Set where
+  endL : Local n t
+  sendSingle recvSingle : Fin n -> Label -> Local n t -> Local n t
+  muL : (l : Local n (suc t)) -> Local n t
+  recL : (recVar : Fin t) -> Local n t
 
 private
   variable
     n : ℕ
+    t : ℕ
     p p′ q : Fin n
     l l′ : Label
-    lSub lSub′ : Local n
+    lSub lSub′ : Local n t
 
+{-
 endL≢sendSingle : ∀ { lSub } -> endL {n} ≢ sendSingle q l lSub
 endL≢sendSingle ()
 
@@ -33,10 +38,14 @@ recvSingle-injective :
   -> p ≡ p′ × l ≡ l′ × lSub ≡ lSub′
 recvSingle-injective refl = refl , refl , refl
 
-Configuration : ℕ -> Set
-Configuration n = Vec (Local n) n
+-}
 
-data _-_→l_ {n : ℕ} : (Fin n × Local n) -> Action n -> (Fin n × Local n) -> Set where
+{- Configuration should not contain open types -}
+Configuration : ℕ -> Set
+Configuration n = Vec (Local n zero) n
+
+{- Reduction is only defined over closed local types -}
+data _-_→l_ {n : ℕ} : (Fin n × Local n zero) -> Action n -> (Fin n × Local n zero) -> Set where
   →l-send :
     ∀ { lp lpSub }
     -> (p : Fin n)

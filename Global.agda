@@ -1,26 +1,31 @@
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
 open import Relation.Nullary.Decidable using (False; toWitnessFalse)
 open import Data.Fin using (Fin; _≟_)
-open import Data.Nat using (ℕ; suc)
+open import Data.Nat using (ℕ; suc; zero)
 open import Data.Product using (_×_; _,_)
 
 open import Common
 
-data Global (n : ℕ) : Set where
-  endG : Global n
-  msgSingle : (p q : Fin n) -> p ≢ q -> Label -> Global n -> Global n
+{- n sets the number of participants, t is the deBruijn index of recursive variable -}
+data Global (n : ℕ) (t : ℕ) : Set where
+  endG : Global n t
+  msgSingle : (p q : Fin n) -> p ≢ q -> Label -> Global n t -> Global n t
+  muG : (g : Global n (suc t)) -> Global n t
+  recG : (recVar : Fin t) -> Global n t
 
 private
   variable
     n : ℕ
+    t : ℕ
     p p′ q q′ r s : Fin n
     l l′ : Label
-    g gSub gSub′ : Global n
+    g gSub gSub′ : Global n t
 
-msgSingle′ : (p q : Fin n) -> {False (p ≟ q)} -> Label -> Global n -> Global n
+msgSingle′ : (p q : Fin n) -> {False (p ≟ q)} -> Label -> Global n t -> Global n t
 msgSingle′ p q {p≢q} l gSub = msgSingle p q (toWitnessFalse p≢q) l gSub
 
-size-g : ∀ { n : ℕ } -> (g : Global n) -> ℕ
+{-
+size-g : ∀ { n : ℕ } -> (g : Global n t) -> ℕ
 size-g endG = 0
 size-g (msgSingle _ _ _ _ gSub) = suc (size-g gSub)
 
@@ -50,8 +55,10 @@ msgSingle-injective :
   -> msgSingle {n} p q p≢q l gSub ≡ msgSingle p′ q′ p′≢q′ l′ gSub′
   -> p ≡ p′ × q ≡ q′ × l ≡ l′ × gSub ≡ gSub′
 msgSingle-injective refl = refl , refl , refl , refl
+-}
 
-data _-_→g_ {n : ℕ} : Global n -> Action n -> Global n -> Set where
+{- Reduction is only defined over closed global types -}
+data _-_→g_ {n : ℕ} : Global n zero -> Action n -> Global n zero -> Set where
   →g-prefix :
     ∀ { p≢q p≢q′ }
     -> (msgSingle p q p≢q l gSub) - (action p q p≢q′ l) →g gSub

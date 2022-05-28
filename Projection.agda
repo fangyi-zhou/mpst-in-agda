@@ -17,12 +17,13 @@ open import Local
 private
   variable
     n : ℕ
+    t : ℕ
     l : Label
     p q : Fin n
-    g gSub : Global n
+    g gSub : Global n t
     lSub : Local n
 
-project : Global n -> Fin n -> Local n
+project : Global n t -> Fin n -> Local n
 project endG _
   = endL
 project (msgSingle p q p≢q l gSub) r
@@ -32,6 +33,7 @@ project (msgSingle p q p≢q l gSub) r
 ... | no _     | no _     = project gSub r
 ... | yes refl | yes refl = ⊥-elim (p≢q refl)
 
+{-
 proj-prefix-other :
   (r s t : Fin n)
   -> ∀{ r≢s }
@@ -170,3 +172,5 @@ config-gt-remove-prefix {n} {p} {q} {_} {p≢q} {gSub} g c assoc refl
           rewrite lookup∘update′ (¬≡-flip p≢r) c lpSub
           rewrite isProj assoc r
           = proj-prefix-other p q r gSub p≢r q≢r
+
+  -}
