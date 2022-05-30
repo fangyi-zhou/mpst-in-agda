@@ -1,6 +1,6 @@
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
 open import Relation.Nullary.Decidable using (False; toWitnessFalse)
-open import Data.Fin using (Fin; _≟_)
+open import Data.Fin using (Fin; _≟_; suc; inject₁; fromℕ)
 open import Data.Nat using (ℕ; suc; zero)
 open import Data.Product using (_×_; _,_)
 
@@ -25,10 +25,17 @@ private
 msgSingle′ : (p q : Fin n) -> {False (p ≟ q)} -> Label -> Global n t -> Global n t
 msgSingle′ p q {p≢q} l gSub = msgSingle p q (toWitnessFalse p≢q) l gSub
 
+data ProductiveG {n : ℕ} {t : ℕ} (target : Fin t) : (g : Global n t) -> Set where
+  end : ProductiveG target endG
+  msg : ProductiveG target (msgSingle p q p≢q l gSub)
+  rec : ProductiveG {t = suc t} (inject₁ target) gSub -> ProductiveG target (muG gSub)
+  var : (recVar : Fin t) -> recVar ≢ target -> ProductiveG target (recG recVar)
+
 data GuardedG {n : ℕ} (t : ℕ) : (g : Global n t) -> Set where
   end : GuardedG t endG
   msg : GuardedG t gSub -> GuardedG t (msgSingle p q p≢q l gSub)
-  rec : GuardedG (suc t) gSub -> GuardedG t (muG gSub)
+  rec : ProductiveG (fromℕ t) gSub -> GuardedG (suc t) gSub -> GuardedG t (muG gSub)
+  var : (recVar : Fin t) -> GuardedG t (recG recVar)
 {-
 size-g : ∀ { n : ℕ } -> (g : Global n t) -> ℕ
 size-g endG = 0
