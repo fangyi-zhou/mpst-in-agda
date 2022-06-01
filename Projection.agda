@@ -1,5 +1,5 @@
 open import Data.Empty using (⊥-elim)
-open import Data.Fin using (Fin; _≟_)
+open import Data.Fin using (Fin; _≟_; fromℕ)
 open import Data.Nat using (ℕ)
 open import Data.Product using (∃-syntax; _,_)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
@@ -34,6 +34,24 @@ project (msgSingle p q p≢q l gSub) r
 ... | yes refl | yes refl = ⊥-elim (p≢q refl)
 project (muG g) r = muL (project g r)
 project (recG n) r = recL n
+
+project-Guarded : Global n t -> Fin n -> Local n t
+project-Guarded endG _
+  = endL
+project-Guarded (msgSingle p q p≢q l gSub) r
+  with p ≟ r   | q ≟ r
+... | yes _    | no _     = sendSingle q l (project-Guarded gSub r)
+... | no _     | yes _    = recvSingle p l (project-Guarded gSub r)
+... | no _     | no _     = project-Guarded gSub r
+... | yes refl | yes refl = ⊥-elim (p≢q refl)
+project-Guarded {t = t} (muG g) r
+  with project-Guarded g r
+...  | recL t′ with fromℕ t ≟ t′
+...            | yes _ = endL
+...            | no _ = muL (recL t′)
+project-Guarded {t = t} (muG g) r
+     | l = muL l
+project-Guarded (recG n) r = recL n
 
 {-
 proj-prefix-other :

@@ -5,7 +5,7 @@ open import Data.Fin
 open import Data.Product
 open import Data.Vec
 open import Relation.Binary.PropositionalEquality
-open import Relation.Nullary 
+open import Relation.Nullary
 
 n = 4
 
