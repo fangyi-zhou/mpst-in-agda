@@ -9,8 +9,10 @@ open import Data.Vec
 open import Relation.Binary.PropositionalEquality
 
 n = 4
+ℓ = 2
 
 Role = Fin n
+Label = Fin ℓ
 
 p : Role
 p = zero
@@ -25,36 +27,36 @@ s : Role
 s = suc (suc (suc zero))
 
 l : Label
-l = 0
+l = zero
 
 l′ : Label
-l′ = 1
+l′ = suc zero
 
-g₁ : Global n
+g₁ : Global n ℓ
 g₁ = msgSingle′ p q l endG
 
-lp : Local n
+lp : Local n ℓ
 lp = sendSingle q l endL
 
 g₁-proj-p-is-lp : project g₁ p ≡ lp
 g₁-proj-p-is-lp = refl
 
-lq : Local n
+lq : Local n ℓ
 lq = recvSingle p l endL
 
 g₁-proj-q-is-lq : project g₁ q ≡ lq
 g₁-proj-q-is-lq = refl
 
-p→q : Action n
+p→q : Action n ℓ
 p→q = action′ p q l
 
-r→s : Action n
+r→s : Action n ℓ
 r→s = action′ r s l′
 
-g₂ : Global n
+g₂ : Global n ℓ
 g₂ = msgSingle′ r s l′ g₁
 
-g₂′ : Global n
+g₂′ : Global n ℓ
 g₂′ = msgSingle′ r s l′ endG
 
 g₁→end : g₁ - p→q →g endG
@@ -78,10 +80,10 @@ g₂-proj-p→g₂′-proj-p = →l-send p refl λ ()
 g₂-proj-q→g₂′-proj-q : (q , project g₂ q) - p→q →l (q , project g₂′ q)
 g₂-proj-q→g₂′-proj-q = →l-recv q refl λ ()
 
-c₁ : Configuration n
+c₁ : Configuration n ℓ
 c₁ = lp ∷ lq ∷ endL ∷ endL ∷ []
 
-cEnd : Configuration n
+cEnd : Configuration n ℓ
 cEnd = endL ∷ endL ∷ endL ∷ endL ∷ []
 
 c₁→cEnd : c₁ - p→q →c cEnd

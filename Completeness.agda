@@ -16,7 +16,7 @@ open import Local
 open import Projection
 
 completeness :
-  ∀{ n } { act : Action n } { c c′ g g-size }
+  ∀{ n ℓ } { act : Action n ℓ } { c c′ g g-size }
   -> { g-size-is-size-g : g-size ≡ size-g g }
   -> g ↔ c
   -> c - act →c c′
@@ -29,13 +29,14 @@ completeness assoc (→c-comm c p≢q lp≡c[p] lq≡c[q] c→c′ (→l-recv p 
   = ⊥-elim (p≢q refl)
 completeness
   {n}
+  {ℓ}
   {act}
   {c′ = c′}
   {g = g}
   {g-size = g-size}
   {g-size-is-size-g = g-size-is-size-g}
   assoc
-  (→c-comm {p} {q} {l} c p≢q lp≡c[p] lq≡c[q] refl
+  (→c-comm {ℓ} {p} {q} {l} c p≢q lp≡c[p] lq≡c[q] refl
     lpReduce@(→l-send {lp = lp} {lpSub = lp′} .p refl p≢q-p)
     lqReduce@(→l-recv {lp = lq} {lpSub = lq′} .q refl p≢q-q)
   )
@@ -97,7 +98,7 @@ completeness
                     rewrite sym (lookup∘update′ (¬≡-flip r≢q) c lrSub)
                     rewrite sym (lookup∘update′ (¬≡-flip s≢q) (c [ r ]≔ lrSub) lsSub)
                     = refl
-          g′ : Global n
+          g′ : Global n ℓ
           g′ with completeness-gSub
           ... | gSub′ , _ , _ = msgSingle r s r≢s l′ gSub′
           gReduce : g - act →g g′

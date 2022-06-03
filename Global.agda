@@ -6,21 +6,21 @@ open import Data.Product using (_×_; _,_)
 
 open import Common
 
-data Global (n : ℕ) : Set where
-  endG : Global n
-  msgSingle : (p q : Fin n) -> p ≢ q -> Label -> Global n -> Global n
+data Global (n : ℕ) (ℓ : ℕ) : Set where
+  endG : Global n ℓ
+  msgSingle : (p q : Fin n) -> p ≢ q -> Fin ℓ -> Global n ℓ -> Global n ℓ
 
 private
   variable
-    n : ℕ
+    n ℓ : ℕ
     p p′ q q′ r s : Fin n
-    l l′ : Label
-    g gSub gSub′ : Global n
+    l l′ : Fin ℓ
+    g gSub gSub′ : Global n ℓ
 
-msgSingle′ : (p q : Fin n) -> {False (p ≟ q)} -> Label -> Global n -> Global n
+msgSingle′ : (p q : Fin n) -> {False (p ≟ q)} -> Fin ℓ -> Global n ℓ -> Global n ℓ
 msgSingle′ p q {p≢q} l gSub = msgSingle p q (toWitnessFalse p≢q) l gSub
 
-size-g : ∀ { n : ℕ } -> (g : Global n) -> ℕ
+size-g : ∀ { n : ℕ } -> (g : Global n ℓ) -> ℕ
 size-g endG = 0
 size-g (msgSingle _ _ _ _ gSub) = suc (size-g gSub)
 
@@ -51,7 +51,7 @@ msgSingle-injective :
   -> p ≡ p′ × q ≡ q′ × l ≡ l′ × gSub ≡ gSub′
 msgSingle-injective refl = refl , refl , refl , refl
 
-data _-_→g_ {n : ℕ} : Global n -> Action n -> Global n -> Set where
+data _-_→g_ {n : ℕ} : Global n ℓ -> Action n ℓ -> Global n ℓ -> Set where
   →g-prefix :
     ∀ { p≢q p≢q′ }
     -> (msgSingle p q p≢q l gSub) - (action p q p≢q′ l) →g gSub

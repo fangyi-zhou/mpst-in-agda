@@ -8,18 +8,15 @@ open import Data.Fin using (Fin; _≟_)
 
 private
   variable
-    n : ℕ
+    n ℓ : ℕ
     l : Level
     A : Set l
     x x′ y : A
 
-Label : Set
-Label = ℕ
+data Action (n : ℕ) (ℓ : ℕ) : Set where
+  action : (p q : Fin n) -> p ≢ q -> Fin ℓ -> Action n ℓ
 
-data Action (n : ℕ) : Set where
-  action : (p q : Fin n) -> p ≢ q -> Label -> Action n
-
-action′ : (p q : Fin n) -> {False (p ≟ q)} -> Label -> Action n
+action′ : (p q : Fin n) -> {False (p ≟ q)} -> Fin ℓ -> Action n ℓ
 action′ p q {p≢q} l = action p q (toWitnessFalse p≢q) l
 
 ¬≡-flip : x ≢ y -> y ≢ x

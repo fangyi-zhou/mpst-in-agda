@@ -14,7 +14,7 @@ open import Local
 open import Projection
 
 soundness :
-  ∀ { n : ℕ } { act : Action n } { c g g′ }
+  ∀ { n ℓ : ℕ } { act : Action n ℓ } { c g g′ }
   -> g ↔ c
   -> g - act →g g′
   -> ∃[ c′ ] c - act →c c′ × g′ ↔ c′
@@ -40,6 +40,7 @@ soundness
       = →l-recv q (proj-prefix-recv p q g′ p≢q-gt) p≢q
 soundness
   {n = n}
+  {ℓ = ℓ}
   {act = act@(.action p q p≢q l)}
   {c = c}
   {g = g@(msgSingle r s r≢s l′ gSub)}
@@ -54,14 +55,14 @@ soundness
     gSub↔cSub = proj₂ (proj₂ config-without-prefix)
     soundness-gSub : ∃[ cSub′ ] cSub - act →c cSub′ × gSub′ ↔ cSub′
     soundness-gSub = soundness gSub↔cSub gReduce
-    c′ : Configuration n
+    c′ : Configuration n ℓ
     c′ with soundness-gSub
     ... | cSub′ , _ , _ = (cSub′ [ r ]≔ lr′) [ s ]≔ ls′
       where
-        lr′ : Local n
+        lr′ : Local n ℓ
         lr′ with soundness-gSub
         ...   | cSub′ , _ , _ = sendSingle s l′ (lookup cSub′ r)
-        ls′ : Local n
+        ls′ : Local n ℓ
         ls′ with soundness-gSub
         ...   | cSub′ , _ , _ = recvSingle r l′ (lookup cSub′ s)
     isProj-g′ : ∀(t : Fin n) -> lookup c′ t ≡ project g′ t

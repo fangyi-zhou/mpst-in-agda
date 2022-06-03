@@ -16,13 +16,13 @@ open import Local
 
 private
   variable
-    n : ℕ
-    l : Label
+    n ℓ : ℕ
+    l : Fin ℓ
     p q : Fin n
-    g gSub : Global n
-    lSub : Local n
+    g gSub : Global n ℓ
+    lSub : Local n ℓ
 
-project : Global n -> Fin n -> Local n
+project : Global n ℓ -> Fin n -> Local n ℓ
 project endG _
   = endL
 project (msgSingle p q p≢q l gSub) r
@@ -35,7 +35,7 @@ project (msgSingle p q p≢q l gSub) r
 proj-prefix-other :
   (r s t : Fin n)
   -> ∀{ r≢s }
-  -> (gSub : Global n)
+  -> (gSub : Global n ℓ)
   -> r ≢ t
   -> s ≢ t
   -> project (msgSingle r s r≢s l gSub) t ≡ project gSub t
@@ -47,7 +47,7 @@ proj-prefix-other r s t _ r≢t s≢t
 
 proj-prefix-send :
   (r s : Fin n)
-  -> (gSub : Global n)
+  -> (gSub : Global n ℓ)
   -> (r≢s : r ≢ s)
   -> project (msgSingle r s r≢s l gSub) r ≡ sendSingle s l (project gSub r)
 proj-prefix-send r s _ r≢s
@@ -58,7 +58,7 @@ proj-prefix-send r s _ r≢s
 
 proj-prefix-recv :
   (r s : Fin n)
-  -> (gSub : Global n)
+  -> (gSub : Global n ℓ)
   -> (r≢s : r ≢ s)
   -> project (msgSingle r s r≢s l gSub) s ≡ recvSingle r l (project gSub s)
 proj-prefix-recv r s _ r≢s
@@ -67,15 +67,15 @@ proj-prefix-recv r s _ r≢s
 ... | yes refl | _       = ⊥-elim (r≢s refl)
 ... | _        | no s≢s  = ⊥-elim (s≢s refl)
 
-record _↔_ { n : ℕ } (g : Global n) (c : Configuration n) : Set where
+record _↔_ { n : ℕ } (g : Global n ℓ) (c : Configuration n ℓ) : Set where
   field
     isProj : ∀(p : Fin n) -> lookup c p ≡ project g p
 
 open _↔_ public
 
 proj-inv-send :
-  project {n} g p ≡ sendSingle q l lSub
-  -> ∃[ p≢q ] ∃[ gSub ] g ≡ msgSingle p q p≢q l gSub × project gSub p ≡ lSub
+  project {n} {ℓ} g p ≡ sendSingle q l lSub
+  -> ∃[ p≢q ] ∃[ gSub ] g ≡ msgSingle p q p≢q l gSub × project {n} {ℓ} gSub p ≡ lSub
      ⊎
      ∃[ r ] ∃[ s ] ∃[ r≢s ] ∃[ l′ ] ∃[ gSub ]
        g ≡ msgSingle r s r≢s l′ gSub ×
@@ -111,8 +111,8 @@ proj-inv-recv {n} {g = g@(msgSingle r s r≢s l′ gSub)} {p} {q} {l} {lSub} pro
 
 proj-inv-send-recv :
   ∀ { lpSub lqSub }
-  -> project {n} g p ≡ sendSingle q l lpSub
-  -> project {n} g q ≡ recvSingle p l lqSub
+  -> project {n} {ℓ} g p ≡ sendSingle q l lpSub
+  -> project {n} {ℓ} g q ≡ recvSingle p l lqSub
   -> ∃[ p≢q ] ∃[ gSub ] g ≡ msgSingle p q p≢q l gSub × project gSub p ≡ lpSub × project gSub q ≡ lqSub
      ⊎
      ∃[ r ] ∃[ s ] ∃[ r≢s ] ∃[ l′ ] ∃[ gSub ]
@@ -123,8 +123,8 @@ proj-inv-send-recv :
        s ≢ q ×
        project gSub p ≡ sendSingle q l lpSub ×
        project gSub q ≡ recvSingle p l lqSub
-proj-inv-send-recv {n} {g} {p} {q} {l} {lpSub} {lqSub} projSend projRecv
-  with proj-inv-send {n} {g} projSend | proj-inv-recv {n} {g} projRecv
+proj-inv-send-recv {n} {ℓ} {g} {p} {q} {l} {lpSub} {lqSub} projSend projRecv
+  with proj-inv-send {n} {ℓ} {g} projSend | proj-inv-recv {n} {ℓ} {g} projRecv
 ... | inj₁ (p≢q₁ , gSub₁ , refl , proj-g₁-p)
     | inj₁ (_ , _ , refl , proj-g₂-q)
         = inj₁ (p≢q₁ , gSub₁ , refl , proj-g₁-p , proj-g₂-q)
@@ -143,12 +143,12 @@ proj-inv-send-recv {n} {g} {p} {q} {l} {ltp′} {ltq′} projSend projRecv
 
 config-gt-remove-prefix :
   ∀ { p≢q gSub }
-  -> (g : Global n)
-  -> (c : Configuration n)
+  -> (g : Global n ℓ)
+  -> (c : Configuration n ℓ)
   -> g ↔ c
   -> g ≡ msgSingle p q p≢q l gSub
   -> ∃[ cSub ] cSub ≡ (c [ p ]≔ project gSub p) [ q ]≔ project gSub q × gSub ↔ cSub
-config-gt-remove-prefix {n} {p} {q} {_} {p≢q} {gSub} g c assoc refl
+config-gt-remove-prefix {n} {ℓ} {p} {q} {_} {p≢q} {gSub} g c assoc refl
   = cSub , refl , (record { isProj = isProj-gSub })
     where
       lpSub = project gSub p

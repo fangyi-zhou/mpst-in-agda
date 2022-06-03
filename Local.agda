@@ -6,16 +6,16 @@ open import Data.Vec using (Vec; lookup; _[_]≔_)
 
 open import Common
 
-data Local (n : ℕ) : Set where
-  endL : Local n
-  sendSingle recvSingle : Fin n -> Label -> Local n -> Local n
+data Local (n : ℕ) (ℓ : ℕ) : Set where
+  endL : Local n ℓ
+  sendSingle recvSingle : Fin n -> Fin ℓ -> Local n ℓ -> Local n ℓ
 
 private
   variable
-    n : ℕ
+    n ℓ : ℕ
     p p′ q : Fin n
-    l l′ : Label
-    lSub lSub′ : Local n
+    l l′ : Fin ℓ
+    lSub lSub′ : Local n ℓ
 
 endL≢sendSingle : ∀ { lSub } -> endL {n} ≢ sendSingle q l lSub
 endL≢sendSingle ()
@@ -24,19 +24,19 @@ endL≢recvSingle : ∀ { lSub } -> endL {n} ≢ recvSingle q l lSub
 endL≢recvSingle ()
 
 sendSingle-injective :
-  sendSingle {n} p l lSub ≡ sendSingle p′ l′ lSub′
+  sendSingle p l lSub ≡ sendSingle p′ l′ lSub′
   -> p ≡ p′ × l ≡ l′ × lSub ≡ lSub′
 sendSingle-injective refl = refl , refl , refl
 
 recvSingle-injective :
-  recvSingle {n} p l lSub ≡ recvSingle p′ l′ lSub′
+  recvSingle p l lSub ≡ recvSingle p′ l′ lSub′
   -> p ≡ p′ × l ≡ l′ × lSub ≡ lSub′
 recvSingle-injective refl = refl , refl , refl
 
-Configuration : ℕ -> Set
-Configuration n = Vec (Local n) n
+Configuration : ℕ -> ℕ -> Set
+Configuration n ℓ = Vec (Local n ℓ) n
 
-data _-_→l_ {n : ℕ} : (Fin n × Local n) -> Action n -> (Fin n × Local n) -> Set where
+data _-_→l_ {n : ℕ} : (Fin n × Local n ℓ) -> Action n ℓ -> (Fin n × Local n ℓ) -> Set where
   →l-send :
     ∀ { lp lpSub }
     -> (p : Fin n)
@@ -50,10 +50,10 @@ data _-_→l_ {n : ℕ} : (Fin n × Local n) -> Action n -> (Fin n × Local n) -
     -> (q≢p : q ≢ p)
     -> (p , lp) - (action q p q≢p l) →l (p , lpSub)
 
-data _-_→c_ {n : ℕ} : Configuration n -> Action n -> Configuration n -> Set where
+data _-_→c_ {n : ℕ} : Configuration n ℓ -> Action n ℓ -> Configuration n ℓ -> Set where
   →c-comm :
     ∀ { lp lp′ lq lq′ c′ p≢q-p p≢q-q }
-    -> (c : Configuration n)
+    -> (c : Configuration n ℓ)
     -> (p≢q : p ≢ q)
     -> lp ≡ lookup c p
     -> lq ≡ lookup c q
