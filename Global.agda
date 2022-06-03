@@ -17,7 +17,7 @@ private
     l l′ : Label
     g gSub gSub′ : Global n
 
-msgSingle′ : (p q : Fin n) -> {False (p ≟ q)} -> Label -> Global n -> Global n
+msgSingle′ : (p q : Fin n) -> {False (p ≟ q)} -> Label -> Global n -> Global n
 msgSingle′ p q {p≢q} l gSub = msgSingle p q (toWitnessFalse p≢q) l gSub
 
 size-g : ∀ { n : ℕ } -> (g : Global n) -> ℕ
@@ -51,7 +51,7 @@ msgSingle-injective :
   -> p ≡ p′ × q ≡ q′ × l ≡ l′ × gSub ≡ gSub′
 msgSingle-injective refl = refl , refl , refl , refl
 
-data _-_→g_ {n : ℕ} : Global n -> Action n -> Global n -> Set where
+data _-_→g_ {n : ℕ} : Global n -> Action n -> Global n -> Set where
   →g-prefix :
     ∀ { p≢q p≢q′ }
     -> (msgSingle p q p≢q l gSub) - (action p q p≢q′ l) →g gSub
