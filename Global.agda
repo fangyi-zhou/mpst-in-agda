@@ -2,13 +2,16 @@ open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
 open import Relation.Nullary.Decidable using (False; toWitnessFalse)
 open import Data.Fin using (Fin; _≟_)
 open import Data.Nat using (ℕ; suc)
+open import Data.Maybe using (Maybe; just; nothing)
 open import Data.Product using (_×_; _,_)
+open import Data.Vec using (Vec; sum; map; lookup)
 
 open import Common
 
 data Global (n : ℕ) (ℓ : ℕ) : Set where
   endG : Global n ℓ
   msgSingle : (p q : Fin n) -> p ≢ q -> Fin ℓ -> Global n ℓ -> Global n ℓ
+  msgBranch : (p q : Fin n) -> p ≢ q -> Vec (Maybe (Global n ℓ)) ℓ -> Global n ℓ
 
 private
   variable
@@ -21,8 +24,9 @@ msgSingle′ : (p q : Fin n) -> {False (p ≟ q)} -> Fin ℓ -> Global n ℓ -> 
 msgSingle′ p q {p≢q} l gSub = msgSingle p q (toWitnessFalse p≢q) l gSub
 
 size-g : ∀ { n : ℕ } -> (g : Global n ℓ) -> ℕ
-size-g endG = 0
+size-g endG = 1
 size-g (msgSingle _ _ _ _ gSub) = suc (size-g gSub)
+size-g (msgBranch _ _ _ gSubs) = {!   !}
 
 size-g-reduces :
   ∀ { p≢q }
@@ -63,3 +67,15 @@ data _-_→g_ {n : ℕ} : Global n ℓ -> Action n ℓ -> Global n ℓ -> Set wh
     -> p ≢ s
     -> q ≢ s
     -> (msgSingle r s r≢s l′ gSub) - (action p q p≢q l) →g (msgSingle r s r≢s l′ gSub′)
+  →g-prefix-branch :
+    ∀ { gSubs p≢q p≢q′ }
+    -> (lookup gSubs l ≡ just gSub)
+    -> (msgBranch p q p≢q gSubs) - (action p q p≢q′ l) →g gSub
+  →g-cont-branch :
+    ∀ { gSubs gSubs′ p≢q r≢s }
+    -> Vec (Maybe {!   !}) ℓ
+    -> p ≢ r
+    -> q ≢ r
+    -> p ≢ s
+    -> q ≢ s
+    -> (msgBranch r s r≢s gSubs) - (action p q p≢q l) →g (msgBranch r s r≢s gSubs′)
