@@ -1,5 +1,5 @@
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
-open import Data.Fin using (Fin)
+open import Data.Fin using (Fin; fromℕ; inject₁)
 open import Data.Nat using (ℕ; suc; zero)
 open import Data.Product using (_×_; _,_)
 open import Data.Vec using (Vec; lookup; _[_]≔_)
@@ -22,11 +22,19 @@ private
     l l′ : Label
     lSub lSub′ : Local n t
 
+data ProductiveL {n : ℕ} {t : ℕ} (target : Fin t) : (l : Local n t) -> Set where
+  end  : ProductiveL target endL
+  send : ProductiveL target (sendSingle p l lSub)
+  recv : ProductiveL target (recvSingle p l lSub)
+  rec  : ProductiveL {t = suc t} (inject₁ target) lSub -> ProductiveL target (muL lSub)
+  var  : (recVar : Fin t) -> recVar ≢ target -> ProductiveL target (recL recVar)
+
 data GuardedL {n : ℕ} (t : ℕ) : (l : Local n t) -> Set where
   end : GuardedL t endL
   send : GuardedL t lSub -> GuardedL t (sendSingle p l lSub)
   recv : GuardedL t lSub -> GuardedL t (recvSingle p l lSub)
-  rec : GuardedL (suc t) lSub -> GuardedL t (muL lSub)
+  rec : ProductiveL (fromℕ t) lSub -> GuardedL (suc t) lSub -> GuardedL t (muL lSub)
+  var : (recVar : Fin t) -> GuardedL t (recL recVar)
 
 {-
 endL≢sendSingle : ∀ { lSub } -> endL {n} ≢ sendSingle q l lSub
