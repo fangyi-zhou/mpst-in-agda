@@ -1,6 +1,6 @@
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; _≟_; fromℕ)
-open import Data.Nat using (ℕ)
+open import Data.Nat using (ℕ; zero)
 open import Data.Product using (∃-syntax; _,_)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Vec using (lookup; _[_]≔_)
@@ -52,6 +52,22 @@ project-Guarded {t = t} (muG g) r
 project-Guarded {t = t} (muG g) r
      | l = muL l
 project-Guarded (recG n) r = recL n
+
+project-Guarded-preserves-guardedness : ∀ { g r lt } -> GuardedG {n} zero g -> project-Guarded g r ≡ lt -> GuardedL {n} zero lt
+project-Guarded-preserves-guardedness end refl = end
+project-Guarded-preserves-guardedness {g = msgSingle p q p≢q l gSub} {r = r} {lt = lt} (msg {p = .p} {q = .q} {p≢q = .p≢q} guarded-gSub) refl
+  with p ≟ r   | q ≟ r
+... | yes refl | no _     = send (project-Guarded-preserves-guardedness {r = r} guarded-gSub refl)
+... | no _     | yes refl = recv (project-Guarded-preserves-guardedness {r = r} guarded-gSub refl)
+... | no _     | no _     = project-Guarded-preserves-guardedness {g = gSub} {r = r} guarded-gSub refl
+... | yes refl | yes refl = ⊥-elim (p≢q refl)
+project-Guarded-preserves-guardedness {g = muG gSub} {r = r} {lt = lt} (rec x x₁) refl
+  with project-Guarded gSub r
+... | endL = rec end end
+... | sendSingle x₂ x₃ xx = rec send (send {!   !})
+... | recvSingle x₂ x₃ xx = rec recv (recv {!   !})
+... | muL xx = rec (rec {!   !}) (rec {!   !} {!   !})
+... | recL recVar = {!   !}
 
 {-
 proj-prefix-other :
