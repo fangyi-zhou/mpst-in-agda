@@ -53,16 +53,19 @@ project-Guarded {t = t} (muG gSub) r
      | l = muL l
 project-Guarded (recG n) r = recL n
 
-project-Guarded-preserves-productivity : ∀ { g r lt target } -> ProductiveG {n} {t} target g -> project-Guarded g r ≡ lt -> ProductiveL {n} {t} target lt
-project-Guarded-preserves-productivity end refl = end
-project-Guarded-preserves-productivity {g = msgSingle p q p≢q l gSub} {r = r} {lt = lt} msg refl 
+project-Guarded-muG : ∀ {r l} -> project-Guarded (muG g) r ≡ muL l -> project-Guarded g r ≡ l
+project-Guarded-muG {g = endG} refl = refl
+project-Guarded-muG {g = msgSingle p q p≢q x₁ gSub} {r = r} proj
   with p ≟ r   | q ≟ r
-... | yes refl | no _     = send
-... | no _     | yes refl = recv
-... | no _     | no _     = project-Guarded-preserves-productivity {g = gSub} {r = r} {!   !} refl
-... | yes refl | yes refl = ⊥-elim (p≢q refl)
-project-Guarded-preserves-productivity (rec prod) refl = {!   !}
-project-Guarded-preserves-productivity (var recVar x) refl = var {!   !} {!   !}
+... | yes _    | no _     = muL-injective proj
+... | no _     | yes _    = muL-injective proj
+... | no _     | no _     with project-Guarded gSub r 
+...     | recL t′      = {!   !}
+...     | l            = {!   !}
+project-Guarded-muG {g = msgSingle p q p≢q x₁ gSub} {r = r} proj
+    | yes refl | yes refl = ⊥-elim (p≢q refl)
+project-Guarded-muG {g = muG gSub} proj = {!   !}
+project-Guarded-muG {g = recG recVar} proj = {! !}
 
 project-Guarded-preserves-guardedness : ∀ { g r lt } -> GuardedG {n} t g -> project-Guarded g r ≡ lt -> GuardedL {n} t lt
 project-Guarded-preserves-guardedness end refl = end

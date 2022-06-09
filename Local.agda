@@ -36,11 +36,10 @@ data GuardedL {n : ℕ} (t : ℕ) : (l : Local n t) -> Set where
   rec : ProductiveL (fromℕ t) lSub -> GuardedL (suc t) lSub -> GuardedL t (muL lSub)
   var : (recVar : Fin t) -> GuardedL t (recL recVar)
 
-{-
-endL≢sendSingle : ∀ { lSub } -> endL {n} ≢ sendSingle q l lSub
+endL≢sendSingle : ∀ { lSub } -> endL {n} {t} ≢ sendSingle q l lSub
 endL≢sendSingle ()
 
-endL≢recvSingle : ∀ { lSub } -> endL {n} ≢ recvSingle q l lSub
+endL≢recvSingle : ∀ { lSub } -> endL {n} {t} ≢ recvSingle q l lSub
 endL≢recvSingle ()
 
 sendSingle-injective :
@@ -53,7 +52,10 @@ recvSingle-injective :
   -> p ≡ p′ × l ≡ l′ × lSub ≡ lSub′
 recvSingle-injective refl = refl , refl , refl
 
--}
+muL-injective :
+  muL {n} {t} lSub ≡ muL lSub′
+  -> lSub ≡ lSub′
+muL-injective refl = refl
 
 {- Configuration should not contain open types -}
 Configuration : ℕ -> Set
