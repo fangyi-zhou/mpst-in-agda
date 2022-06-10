@@ -1,17 +1,21 @@
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
 open import Relation.Nullary.Decidable using (False; toWitnessFalse)
-open import Data.Fin using (Fin; _≟_; suc; inject₁; fromℕ)
+open import Data.Fin using (Fin; _≟_; suc; inject₁; fromℕ; toℕ)
 open import Data.Nat using (ℕ; suc; zero)
-open import Data.Product using (_×_; _,_)
+open import Data.Product using (_×_; _,_; ∃-syntax; proj₁; proj₂)
 
 open import Common
 
 {- n sets the number of participants, t is the deBruijn index of recursive variable -}
-data Global (n : ℕ) (t : ℕ) : Set where
+data Global (n : ℕ) (t : ℕ) : Set
+unRec : ∀ {n t} -> Global n t -> ∃[ t′ ] Global n t′
+data Global n t where
   endG : Global n t
   msgSingle : (p q : Fin n) -> p ≢ q -> Label -> Global n t -> Global n t
   muG : (g : Global n (suc t)) -> Global n t
   recG : (recVar : Fin t) -> Global n t
+unRec (muG g) = unRec g
+unRec {t = t} g = t , g
 
 private
   variable
