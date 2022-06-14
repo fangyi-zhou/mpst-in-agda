@@ -32,9 +32,10 @@ project (msgSingle p q p≢q l gSub) r
 ... | no _     | yes _    = recvSingle p l (project gSub r)
 ... | no _     | no _     = project gSub r
 ... | yes refl | yes refl = ⊥-elim (p≢q refl)
-project (muG g) r = muL (project g r)
+project (muG g guarded) r = muL (project g r)
 project (recG n) r = recL n
 
+{-
 project-Guarded : Global n t -> Fin n -> Local n t
 project-Guarded endG _
   = endL
@@ -89,6 +90,7 @@ project-Guarded-preserves-guardedness {t = t} {g = muG gSub} {r = r} {lt = lt} (
 project-Guarded-preserves-guardedness {t = t} {g = muG gSub} {r = r} {lt = lt} (rec productive-gSub guarded-gSub) refl
      | muL _  = rec (rec {!   !}) (rec {!   !} {!   !})
 project-Guarded-preserves-guardedness (var t) refl = var t
+-}
 
 {-
 proj-prefix-other :

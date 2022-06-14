@@ -3,19 +3,30 @@ open import Relation.Nullary.Decidable using (False; toWitnessFalse)
 open import Data.Fin using (Fin; _≟_; suc; inject₁; fromℕ; toℕ)
 open import Data.Nat using (ℕ; suc; zero)
 open import Data.Product using (_×_; _,_; ∃-syntax; proj₁; proj₂)
+open import Data.Sum using (_⊎_)
 
 open import Common
 
 {- n sets the number of participants, t is the deBruijn index of recursive variable -}
-data Global (n : ℕ) (t : ℕ) : Set
-unRec : ∀ {n t} -> Global n t -> ∃[ t′ ] Global n t′
-data Global n t where
-  endG : Global n t
-  msgSingle : (p q : Fin n) -> p ≢ q -> Label -> Global n t -> Global n t
-  muG : (g : Global n (suc t)) -> Global n t
-  recG : (recVar : Fin t) -> Global n t
-unRec (muG g) = unRec g
-unRec {t = t} g = t , g
+interleaved mutual
+  data Global (n : ℕ) (t : ℕ) : Set
+  unRec : ∀ {n t} -> Global n t -> ∃[ t′ ] Global n t′
+  data Guarded {n t} : (target : Fin t) -> Global n t -> Set
+
+  data Global n t where
+    endG : Global n t
+    msgSingle : (p q : Fin n) -> p ≢ q -> Label -> Global n t -> Global n t
+    muG : (g : Global n (suc t)) -> Guarded (fromℕ t) g -> Global n t
+    recG : (recVar : Fin t) -> Global n t
+  unRec (muG g _) = unRec g
+  unRec {t = t} g = t , g
+
+  data Guarded target g where
+    endG : ∀{target} -> Guarded target endG
+    msgSingle : ∀{p q p≢q l gSub target} -> Guarded target (msgSingle p q p≢q l gSub)
+    recG : ∀{target} {x : Fin t} -> target ≢ x -> Guarded target (recG x)
+    {-- If we remove muG, then we remove duplicate recursion -}
+    muG : ∀{target g guarded} -> Guarded target (muG g guarded)
 
 private
   variable
@@ -29,6 +40,7 @@ private
 msgSingle′ : (p q : Fin n) -> {False (p ≟ q)} -> Label -> Global n t -> Global n t
 msgSingle′ p q {p≢q} l gSub = msgSingle p q (toWitnessFalse p≢q) l gSub
 
+{-
 data ProductiveG {n : ℕ} {t : ℕ} (target : Fin t) : (g : Global n t) -> Set where
   end : ProductiveG target endG
   msg : ProductiveG target (msgSingle p q p≢q l gSub)
@@ -40,7 +52,6 @@ data GuardedG {n : ℕ} (t : ℕ) : (g : Global n t) -> Set where
   msg : GuardedG t gSub -> GuardedG t (msgSingle p q p≢q l gSub)
   rec : ProductiveG (fromℕ t) gSub -> GuardedG (suc t) gSub -> GuardedG t (muG gSub)
   var : (recVar : Fin t) -> GuardedG t (recG recVar)
-{-
 size-g : ∀ { n : ℕ } -> (g : Global n t) -> ℕ
 size-g endG = 0
 size-g (msgSingle _ _ _ _ gSub) = suc (size-g gSub)
