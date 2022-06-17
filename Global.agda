@@ -10,23 +10,20 @@ open import Common
 {- n sets the number of participants, t is the deBruijn index of recursive variable -}
 interleaved mutual
   data Global (n : ℕ) (t : ℕ) : Set
-  unRec : ∀ {n t} -> Global n t -> ∃[ t′ ] Global n t′
-  data Guarded {n t} : (target : Fin t) -> Global n t -> Set
+  data GuardedG {n t} : (target : Fin t) -> Global n t -> Set
 
   data Global n t where
     endG : Global n t
     msgSingle : (p q : Fin n) -> p ≢ q -> Label -> Global n t -> Global n t
-    muG : (g : Global n (suc t)) -> Guarded (fromℕ t) g -> Global n t
+    muG : (g : Global n (suc t)) -> GuardedG (fromℕ t) g -> Global n t
     recG : (recVar : Fin t) -> Global n t
-  unRec (muG g _) = unRec g
-  unRec {t = t} g = t , g
 
-  data Guarded target g where
-    endG : ∀{target} -> Guarded target endG
-    msgSingle : ∀{p q p≢q l gSub target} -> Guarded target (msgSingle p q p≢q l gSub)
-    recG : ∀{target} {x : Fin t} -> target ≢ x -> Guarded target (recG x)
+  data GuardedG target g where
+    endG : ∀{target} -> GuardedG target endG
+    msgSingle : ∀{p q p≢q l gSub target} -> GuardedG target (msgSingle p q p≢q l gSub)
+    recG : ∀{target} {x : Fin t} -> target ≢ x -> GuardedG target (recG x)
     {-- If we remove muG, then we remove duplicate recursion -}
-    muG : ∀{target g guarded} -> Guarded target (muG g guarded)
+    muG : ∀{target g guarded} -> GuardedG target (muG g guarded)
 
 private
   variable

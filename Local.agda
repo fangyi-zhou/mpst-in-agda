@@ -7,11 +7,22 @@ open import Data.Vec using (Vec; lookup; _[_]≔_)
 open import Common
 
 {- n sets the number of participants, t is the deBruijn index of recursive variable -}
-data Local (n : ℕ) (t : ℕ) : Set where
-  endL : Local n t
-  sendSingle recvSingle : Fin n -> Label -> Local n t -> Local n t
-  muL : (l : Local n (suc t)) -> Local n t
-  recL : (recVar : Fin t) -> Local n t
+interleaved mutual
+  data Local (n : ℕ) (t : ℕ) : Set
+  data GuardedL {n t} : (target : Fin t) -> Local n t -> Set
+
+  data Local n t where
+    endL : Local n t
+    sendSingle recvSingle : Fin n -> Label -> Local n t -> Local n t
+    muL : (l : Local n (suc t)) -> GuardedL (fromℕ t) l -> Local n t
+    recL : (recVar : Fin t) -> Local n t
+
+  data GuardedL target l where
+    endL : ∀{target} -> GuardedL target endL
+    sendSingle : ∀{p l lSub target} -> GuardedL target (sendSingle p l lSub)
+    recvSingle : ∀{p l lSub target} -> GuardedL target (recvSingle p l lSub)
+    recG : ∀{target} {x : Fin t} -> target ≢ x -> GuardedL target (recL x)
+    muL : ∀{target l guarded} -> GuardedL target (muL l guarded)
 
 private
   variable
@@ -22,6 +33,7 @@ private
     l l′ : Label
     lSub lSub′ : Local n t
 
+{--
 data ProductiveL {n : ℕ} {t : ℕ} (target : Fin t) : (l : Local n t) -> Set where
   end  : ProductiveL target endL
   send : ProductiveL target (sendSingle p l lSub)
@@ -53,9 +65,11 @@ recvSingle-injective :
 recvSingle-injective refl = refl , refl , refl
 
 muL-injective :
-  muL {n} {t} lSub ≡ muL lSub′
+  ∀{guarded guarded′} ->
+  muL {n} {t} lSub guarded ≡ muL lSub′ guarded′
   -> lSub ≡ lSub′
 muL-injective refl = refl
+--}
 
 {- Configuration should not contain open types -}
 Configuration : ℕ -> Set

@@ -32,7 +32,14 @@ project (msgSingle p q p≢q l gSub) r
 ... | no _     | yes _    = recvSingle p l (project gSub r)
 ... | no _     | no _     = project gSub r
 ... | yes refl | yes refl = ⊥-elim (p≢q refl)
-project (muG g guarded) r = muL (project g r)
+project {t = t} (muG g guarded) r with project g r
+... | endL = muL endL endL
+... | sendSingle p l lSub = muL (sendSingle p l lSub) sendSingle
+... | recvSingle p l lSub = muL (recvSingle p l lSub) recvSingle
+... | muL l guardedL = muL (muL l guardedL) muL
+... | recL recVar with fromℕ t ≟ recVar
+...                   | yes refl = muL endL endL
+...                   | no t≢recVar = muL (recL recVar) (recG t≢recVar)
 project (recG n) r = recL n
 
 {-
@@ -60,7 +67,7 @@ project-Guarded-muG {g = msgSingle p q p≢q x₁ gSub} {r = r} proj
   with p ≟ r   | q ≟ r
 ... | yes _    | no _     = muL-injective proj
 ... | no _     | yes _    = muL-injective proj
-... | no _     | no _     with project-Guarded gSub r 
+... | no _     | no _     with project-Guarded gSub r
 ...     | recL t′      = {!   !}
 ...     | l            = {!   !}
 project-Guarded-muG {g = msgSingle p q p≢q x₁ gSub} {r = r} proj
