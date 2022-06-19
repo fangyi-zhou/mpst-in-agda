@@ -15,15 +15,15 @@ interleaved mutual
   data Global n t where
     endG : Global n t
     msgSingle : (p q : Fin n) -> p ≢ q -> Label -> Global n t -> Global n t
-    muG : (g : Global n (suc t)) -> GuardedG (fromℕ t) g -> Global n t
-    recG : (recVar : Fin t) -> Global n t
+    recG : (g : Global n (suc t)) -> GuardedG (fromℕ t) g -> Global n t
+    varG : (recVar : Fin t) -> Global n t
 
   data GuardedG target g where
-    endG : ∀{target} -> GuardedG target endG
-    msgSingle : ∀{p q p≢q l gSub target} -> GuardedG target (msgSingle p q p≢q l gSub)
-    recG : ∀{target} {x : Fin t} -> target ≢ x -> GuardedG target (recG x)
+    endGlobal : ∀{target} -> GuardedG target endG
+    msg : ∀{p q p≢q l gSub target} -> GuardedG target (msgSingle p q p≢q l gSub)
+    guardedVarG : ∀{target} {x : Fin t} -> target ≢ x -> GuardedG target (varG x)
     {-- If we remove muG, then we remove duplicate recursion -}
-    muG : ∀{target g guarded} -> GuardedG target (muG g guarded)
+    guardedRecG : ∀{target g guarded} -> GuardedG target (recG g guarded)
 
 private
   variable
@@ -38,17 +38,6 @@ msgSingle′ : (p q : Fin n) -> {False (p ≟ q)} -> Label -> Global n t -> Glob
 msgSingle′ p q {p≢q} l gSub = msgSingle p q (toWitnessFalse p≢q) l gSub
 
 {-
-data ProductiveG {n : ℕ} {t : ℕ} (target : Fin t) : (g : Global n t) -> Set where
-  end : ProductiveG target endG
-  msg : ProductiveG target (msgSingle p q p≢q l gSub)
-  rec : ProductiveG {t = suc t} (inject₁ target) gSub -> ProductiveG target (muG gSub)
-  var : (recVar : Fin t) -> recVar ≢ target -> ProductiveG target (recG recVar)
-
-data GuardedG {n : ℕ} (t : ℕ) : (g : Global n t) -> Set where
-  end : GuardedG t endG
-  msg : GuardedG t gSub -> GuardedG t (msgSingle p q p≢q l gSub)
-  rec : ProductiveG (fromℕ t) gSub -> GuardedG (suc t) gSub -> GuardedG t (muG gSub)
-  var : (recVar : Fin t) -> GuardedG t (recG recVar)
 size-g : ∀ { n : ℕ } -> (g : Global n t) -> ℕ
 size-g endG = 0
 size-g (msgSingle _ _ _ _ gSub) = suc (size-g gSub)

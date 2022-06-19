@@ -34,7 +34,7 @@ g₁ : Global n 0
 g₁ = msgSingle′ p q l endG
 
 g₂ : Global n 0
-g₂ = muG (msgSingle′ p q l (recG zero)) msgSingle
+g₂ = recG (msgSingle′ p q l (varG zero)) msg
 
 {-
 g₂Guarded : GuardedG 0 g₂
@@ -53,7 +53,7 @@ g₃Unguarded (rec (var .zero x) x₁) = x refl
 -}
 
 g₄ : Global n 0
-g₄ = muG (muG (msgSingle′ p q l (recG zero)) msgSingle) muG
+g₄ = recG (recG (msgSingle′ p q l (varG zero)) msg) guardedRecG
 
 {-
 g₄Guarded : GuardedG 0 g₄
@@ -61,7 +61,7 @@ g₄Guarded = rec (rec msg) (rec msg (msg (var zero)))
 -}
 
 g₄′ : Global n 0
-g₄′ = muG (muG (msgSingle′ p q l (recG (suc zero))) msgSingle ) muG
+g₄′ = recG (recG (msgSingle′ p q l (varG (suc zero))) msg) guardedRecG
 
 {-
 g₄′Guarded : GuardedG 0 g₄′

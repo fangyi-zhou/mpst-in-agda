@@ -32,72 +32,16 @@ project (msgSingle p q p≢q l gSub) r
 ... | no _     | yes _    = recvSingle p l (project gSub r)
 ... | no _     | no _     = project gSub r
 ... | yes refl | yes refl = ⊥-elim (p≢q refl)
-project {t = t} (muG g guarded) r with project g r
-... | endL = muL endL endL
-... | sendSingle p l lSub = muL (sendSingle p l lSub) sendSingle
-... | recvSingle p l lSub = muL (recvSingle p l lSub) recvSingle
-... | muL l guardedL = muL (muL l guardedL) muL
-... | recL recVar with fromℕ t ≟ recVar
-...                   | yes refl = muL endL endL
-...                   | no t≢recVar = muL (recL recVar) (recG t≢recVar)
-project (recG n) r = recL n
+project {t = t} (recG g guarded) r with project g r
+... | endL = recL endL endLocal
+... | sendSingle p l lSub = recL (sendSingle p l lSub) send
+... | recvSingle p l lSub = recL (recvSingle p l lSub) recv
+... | recL l guardedL = recL (recL l guardedL) guardedRecL
+... | varL recVar with fromℕ t ≟ recVar
+...                   | yes refl = recL endL endLocal
+...                   | no t≢recVar = recL (varL recVar) (guardedVarL t≢recVar)
+project (varG n) r = varL n
 
-{-
-project-Guarded : Global n t -> Fin n -> Local n t
-project-Guarded endG _
-  = endL
-project-Guarded (msgSingle p q p≢q l gSub) r
-  with p ≟ r   | q ≟ r
-... | yes _    | no _     = sendSingle q l (project-Guarded gSub r)
-... | no _     | yes _    = recvSingle p l (project-Guarded gSub r)
-... | no _     | no _     = project-Guarded gSub r
-... | yes refl | yes refl = ⊥-elim (p≢q refl)
-project-Guarded {t = t} (muG gSub) r
-  with project-Guarded gSub r
-...  | recL t′ with fromℕ t ≟ t′
-...            | yes _ = endL
-...            | no _ = muL (recL t′)
-project-Guarded {t = t} (muG gSub) r
-     | l = muL l
-project-Guarded (recG n) r = recL n
-
-project-Guarded-muG : ∀ {r l} -> project-Guarded (muG g) r ≡ muL l -> project-Guarded g r ≡ l
-project-Guarded-muG {g = endG} refl = refl
-project-Guarded-muG {g = msgSingle p q p≢q x₁ gSub} {r = r} proj
-  with p ≟ r   | q ≟ r
-... | yes _    | no _     = muL-injective proj
-... | no _     | yes _    = muL-injective proj
-... | no _     | no _     with project-Guarded gSub r
-...     | recL t′      = {!   !}
-...     | l            = {!   !}
-project-Guarded-muG {g = msgSingle p q p≢q x₁ gSub} {r = r} proj
-    | yes refl | yes refl = ⊥-elim (p≢q refl)
-project-Guarded-muG {g = muG gSub} proj = {!   !}
-project-Guarded-muG {g = recG recVar} proj = {! !}
-
-project-Guarded-preserves-guardedness : ∀ { g r lt } -> GuardedG {n} t g -> project-Guarded g r ≡ lt -> GuardedL {n} t lt
-project-Guarded-preserves-guardedness end refl = end
-project-Guarded-preserves-guardedness {g = msgSingle p q p≢q l gSub} {r = r} {lt = lt} (msg {p = .p} {q = .q} {p≢q = .p≢q} guarded-gSub) refl
-  with p ≟ r   | q ≟ r
-... | yes refl | no _     = send (project-Guarded-preserves-guardedness {r = r} guarded-gSub refl)
-... | no _     | yes refl = recv (project-Guarded-preserves-guardedness {r = r} guarded-gSub refl)
-... | no _     | no _     = project-Guarded-preserves-guardedness {g = gSub} {r = r} guarded-gSub refl
-... | yes refl | yes refl = ⊥-elim (p≢q refl)
-project-Guarded-preserves-guardedness {t = t} {g = muG gSub} {r = r} {lt = lt} (rec productive-gSub guarded-gSub) refl
-  with project-Guarded gSub r
-...  | recL t′ with fromℕ t ≟ t′
-...            | yes _ = end
-...            | no t≢t′ = rec (var t′ (¬≡-flip t≢t′)) (var t′)
-project-Guarded-preserves-guardedness {t = t} {g = muG gSub} {r = r} {lt = lt} (rec productive-gSub guarded-gSub) refl
-     | endL = rec end end
-project-Guarded-preserves-guardedness {t = t} {g = muG gSub} {r = r} {lt = lt} (rec productive-gSub guarded-gSub) refl
-     | sendSingle _ _ lSub = rec send (send (project-Guarded-preserves-guardedness {r = r} guarded-gSub {!   !}))
-project-Guarded-preserves-guardedness {t = t} {g = muG gSub} {r = r} {lt = lt} (rec productive-gSub guarded-gSub) refl
-     | recvSingle _ _ lSub = rec recv (recv (project-Guarded-preserves-guardedness {r = r} guarded-gSub {!   !}))
-project-Guarded-preserves-guardedness {t = t} {g = muG gSub} {r = r} {lt = lt} (rec productive-gSub guarded-gSub) refl
-     | muL _  = rec (rec {!   !}) (rec {!   !} {!   !})
-project-Guarded-preserves-guardedness (var t) refl = var t
--}
 
 {-
 proj-prefix-other :

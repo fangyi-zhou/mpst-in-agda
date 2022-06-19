@@ -14,15 +14,15 @@ interleaved mutual
   data Local n t where
     endL : Local n t
     sendSingle recvSingle : Fin n -> Label -> Local n t -> Local n t
-    muL : (l : Local n (suc t)) -> GuardedL (fromℕ t) l -> Local n t
-    recL : (recVar : Fin t) -> Local n t
+    recL : (l : Local n (suc t)) -> GuardedL (fromℕ t) l -> Local n t
+    varL : (recVar : Fin t) -> Local n t
 
   data GuardedL target l where
-    endL : ∀{target} -> GuardedL target endL
-    sendSingle : ∀{p l lSub target} -> GuardedL target (sendSingle p l lSub)
-    recvSingle : ∀{p l lSub target} -> GuardedL target (recvSingle p l lSub)
-    recG : ∀{target} {x : Fin t} -> target ≢ x -> GuardedL target (recL x)
-    muL : ∀{target l guarded} -> GuardedL target (muL l guarded)
+    endLocal : ∀{target} -> GuardedL target endL
+    send : ∀{p l lSub target} -> GuardedL target (sendSingle p l lSub)
+    recv : ∀{p l lSub target} -> GuardedL target (recvSingle p l lSub)
+    guardedVarL : ∀{target} {x : Fin t} -> target ≢ x -> GuardedL target (varL x)
+    guardedRecL : ∀{target l guarded} -> GuardedL target (recL l guarded)
 
 private
   variable
@@ -33,29 +33,14 @@ private
     l l′ : Label
     lSub lSub′ : Local n t
 
-{--
-data ProductiveL {n : ℕ} {t : ℕ} (target : Fin t) : (l : Local n t) -> Set where
-  end  : ProductiveL target endL
-  send : ProductiveL target (sendSingle p l lSub)
-  recv : ProductiveL target (recvSingle p l lSub)
-  rec  : ProductiveL {t = suc t} (inject₁ target) lSub -> ProductiveL target (muL lSub)
-  var  : (recVar : Fin t) -> recVar ≢ target -> ProductiveL target (recL recVar)
-
-data GuardedL {n : ℕ} (t : ℕ) : (l : Local n t) -> Set where
-  end : GuardedL t endL
-  send : GuardedL t lSub -> GuardedL t (sendSingle p l lSub)
-  recv : GuardedL t lSub -> GuardedL t (recvSingle p l lSub)
-  rec : ProductiveL (fromℕ t) lSub -> GuardedL (suc t) lSub -> GuardedL t (muL lSub)
-  var : (recVar : Fin t) -> GuardedL t (recL recVar)
-
-endL≢sendSingle : ∀ { lSub } -> endL {n} {t} ≢ sendSingle q l lSub
+endL≢sendSingle : endL ≢ sendSingle p l lSub
 endL≢sendSingle ()
 
-endL≢recvSingle : ∀ { lSub } -> endL {n} {t} ≢ recvSingle q l lSub
+endL≢recvSingle : endL ≢ recvSingle p l lSub
 endL≢recvSingle ()
 
 sendSingle-injective :
-  sendSingle {n} p l lSub ≡ sendSingle p′ l′ lSub′
+  sendSingle {n} {t} p l lSub ≡ sendSingle p′ l′ lSub′
   -> p ≡ p′ × l ≡ l′ × lSub ≡ lSub′
 sendSingle-injective refl = refl , refl , refl
 
@@ -64,6 +49,7 @@ recvSingle-injective :
   -> p ≡ p′ × l ≡ l′ × lSub ≡ lSub′
 recvSingle-injective refl = refl , refl , refl
 
+{-
 muL-injective :
   ∀{guarded guarded′} ->
   muL {n} {t} lSub guarded ≡ muL lSub′ guarded′
