@@ -36,7 +36,7 @@ project (msgSingle p q p≢q l gSub) r
   with p ≟ r   | q ≟ r
 ... | yes _    | no _     = sendSingle q l (∞project gSub r)
 ... | no _     | yes _    = recvSingle p l (∞project gSub r)
-... | no _     | no _     = {!   !}
+... | no _     | no _     = force (∞project gSub r)
 ... | yes refl | yes refl = ⊥-elim (p≢q refl)
 
 proj-prefix-other :
@@ -178,4 +178,3 @@ config-gt-remove-prefix {n} {p} {q} {_} {p≢q} {gSub} g c assoc refl
   --         rewrite lookup∘update′ (¬≡-flip p≢r) c lpSub
   --         rewrite isProj assoc r
   --         = proj-prefix-other p q r gSub p≢r q≢r
- 

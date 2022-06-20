@@ -1,7 +1,9 @@
 {-# OPTIONS --guardedness #-}
 
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
+open import Relation.Nullary using (Dec; yes; no)
 open import Relation.Nullary.Decidable using (False; toWitnessFalse)
+open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; _≟_)
 open import Data.Nat using (ℕ; suc)
 open import Data.Product using (_×_; _,_)
@@ -25,11 +27,43 @@ private
   variable
     n : ℕ
     p p′ q q′ r s : Fin n
+    p≢q : p ≢ q
     l l′ : Label
     g gSub gSub′ : Global n
+    ∞g ∞gSub ∞gSub′ : ∞Global n
 
 msgSingle′ : (p q : Fin n) -> {False (p ≟ q)} -> Label -> ∞Global n -> Global n
 msgSingle′ p q {p≢q} l gSub = msgSingle p q (toWitnessFalse p≢q) l gSub
+
+data _∈_ : (r : Fin n) -> (g : Global n) -> Set
+data _∞∈_ : (r : Fin n) -> (g : ∞Global n) -> Set
+
+data _∈_ where
+  sender : ∀{r≢q} -> r ∈ msgSingle r q r≢q l ∞gSub
+  receiver : ∀{q≢r} -> r ∈ msgSingle q r q≢r l ∞gSub
+  there : r ∞∈ ∞gSub -> r ∈ msgSingle p q p≢q l ∞gSub
+
+data _∞∈_ where
+  unbox : r ∈ force ∞g -> r ∞∈ ∞g
+
+_∈?_ : (r : Fin n) -> (g : Global n) -> Dec (r ∈ g)
+_∞∈?_ : (r : Fin n) -> (∞g : ∞Global n) -> Dec (r ∞∈ ∞g)
+
+r ∈? endG = no (λ ())
+r ∈? msgSingle p q p≢q l ∞gSub
+  with  p ≟ r  | q ≟ r
+... | yes refl | no _     = yes sender
+... | no _     | yes refl = yes receiver
+... | no _     | no _     with r ∞∈? ∞gSub
+...                       | yes r∞∈∞gSub = yes (there r∞∈∞gSub)
+...                       | no r∞∉∞gSub = no {!   !}
+r ∈? msgSingle p q p≢q l ∞gSub
+  with  p ≟ r  | q ≟ r
+... | yes refl | yes refl = ⊥-elim (p≢q refl)
+
+_∞∈?_ r g with r ∈? force g
+... | yes r∈g = yes (unbox r∈g)
+... | no  r∉g = no {!   !}
 
 -- size-g : ∀ { n : ℕ } -> (g : Global n) -> ℕ
 -- size-g endG = 0
