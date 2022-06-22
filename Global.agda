@@ -55,20 +55,20 @@ incr-Guarded (guardedVarG x) = guardedVarG λ x₂ → x (suc-injective x₂)
 incr-Guarded guardedRecG = guardedRecG
 
 _[_] : Global n (suc t) -> Global n t -> Global n t
-_guarded[_] : ∀{t : ℕ} {g : Global n (suc t)} {g′ : Global n t} {target} -> GuardedG (suc target) g -> GuardedG target g′ -> GuardedG target (g [ g′ ])
+_guarded[_] : ∀{t : ℕ} {g : Global n (suc t)} {g′ : Global n t} {target} -> GuardedG (inject₁ target) g -> GuardedG target g′ -> GuardedG target (g [ g′ ])
 
 endG [ g′ ] = endG
 msgSingle p q p≢q l g [ g′ ] = msgSingle p q p≢q l (g [ g′ ])
 _[_] {t = t} (varG recVar) g′  with t Data.Nat.≟ toℕ recVar
 ... | yes _ = g′
 ... | no  notMax = varG (lower₁ recVar notMax)
-recG g guardedG [ g′ ] = recG (g [ incr g′ ]) (guardedG guarded[ {! incr-Guarded   !} ])
+_[_] {t = t} (recG g guardedG) g′ = recG (g [ incr g′ ]) ({! _guarded[_] {target = fromℕ t}  !})
 
 endGlobal guarded[ guardedG′ ] = endGlobal
 msg guarded[ guardedG′ ] = msg
 _guarded[_] {t = t} (guardedVarG {x = x} xx) guardedG′ with t Data.Nat.≟ toℕ x
 ... | yes _ = guardedG′
-... | no  xxx = guardedVarG (λ xxxx → xx {!   !})
+... | no  xxx = guardedVarG (λ xxxx → xx (trans (cong inject₁ xxxx) (inject₁-lower₁ x xxx)))
 guardedRecG guarded[ guardedG′ ] = guardedRecG
 
 {-
