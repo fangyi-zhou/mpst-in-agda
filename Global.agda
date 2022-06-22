@@ -1,9 +1,13 @@
-open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
-open import Relation.Nullary.Decidable using (False; toWitnessFalse)
-open import Data.Fin using (Fin; _≟_; suc; inject₁; fromℕ; toℕ)
+open import Data.Empty using (⊥-elim)
+open import Data.Fin using (Fin; _≟_; suc; inject₁; fromℕ; toℕ; lower₁)
+open import Data.Fin.Properties using (suc-injective; toℕ-injective; toℕ-fromℕ; toℕ-lower₁; inject₁-lower₁)
 open import Data.Nat using (ℕ; suc; zero)
+open import Data.Nat.Properties using (1+n≢n)
 open import Data.Product using (_×_; _,_; ∃-syntax; proj₁; proj₂)
 open import Data.Sum using (_⊎_)
+open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl; cong; trans; sym)
+open import Relation.Nullary using (yes; no)
+open import Relation.Nullary.Decidable using (False; toWitnessFalse)
 
 open import Common
 
@@ -32,10 +36,40 @@ private
     p p′ q q′ r s : Fin n
     p≢q : p ≢ q
     l l′ : Label
-    g gSub gSub′ : Global n t
+    g g′ gSub gSub′ : Global n t
 
 msgSingle′ : (p q : Fin n) -> {False (p ≟ q)} -> Label -> Global n t -> Global n t
 msgSingle′ p q {p≢q} l gSub = msgSingle p q (toWitnessFalse p≢q) l gSub
+
+incr : Global n t -> Global n (suc t)
+incr-Guarded : ∀{target} -> GuardedG target g -> GuardedG (suc target) (incr g)
+
+incr endG = endG
+incr (msgSingle p q p≢q l g) = msgSingle p q p≢q l (incr g)
+incr (varG recVar) = varG (suc recVar)
+incr (recG g guardedG) = recG (incr g) (incr-Guarded guardedG)
+
+incr-Guarded endGlobal = endGlobal
+incr-Guarded msg = msg
+incr-Guarded (guardedVarG x) = guardedVarG λ x₂ → x (suc-injective x₂)
+incr-Guarded guardedRecG = guardedRecG
+
+_[_] : Global n (suc t) -> Global n t -> Global n t
+_guarded[_] : ∀{t : ℕ} {g : Global n (suc t)} {g′ : Global n t} {target} -> GuardedG (suc target) g -> GuardedG target g′ -> GuardedG target (g [ g′ ])
+
+endG [ g′ ] = endG
+msgSingle p q p≢q l g [ g′ ] = msgSingle p q p≢q l (g [ g′ ])
+_[_] {t = t} (varG recVar) g′  with t Data.Nat.≟ toℕ recVar
+... | yes _ = g′
+... | no  notMax = varG (lower₁ recVar notMax)
+recG g guardedG [ g′ ] = recG (g [ incr g′ ]) (guardedG guarded[ {! incr-Guarded   !} ])
+
+endGlobal guarded[ guardedG′ ] = endGlobal
+msg guarded[ guardedG′ ] = msg
+_guarded[_] {t = t} (guardedVarG {x = x} xx) guardedG′ with t Data.Nat.≟ toℕ x
+... | yes _ = guardedG′
+... | no  xxx = guardedVarG (λ xxxx → xx {!   !})
+guardedRecG guarded[ guardedG′ ] = guardedRecG
 
 {-
 size-g : ∀ { n : ℕ } -> (g : Global n t) -> ℕ
