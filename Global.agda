@@ -36,25 +36,19 @@ msgSingle′ : (p q : Fin n) -> {False (p ≟ q)} -> Label -> ∞Global n -> Glo
 msgSingle′ p q {p≢q} l gSub = msgSingle p q (toWitnessFalse p≢q) l gSub
 
 data _∈_ : (r : Fin n) -> (g : Global n) -> Set
+record _∞∈_ (r : Fin n) (∞g : ∞Global n) : Set
 
 data _∈_ where
   sender : ∀{r≢q} -> r ∈ msgSingle r q r≢q l ∞gSub
   receiver : ∀{q≢r} -> r ∈ msgSingle q r q≢r l ∞gSub
-  there : r ∈ force ∞gSub -> r ∈ msgSingle p q p≢q l ∞gSub
+  there : r ∞∈ ∞gSub -> r ∈ msgSingle p q p≢q l ∞gSub
 
-_∈?_ : (r : Fin n) -> (g : Global n) -> Dec (r ∈ g)
+record _∞∈_ r ∞g where
+  coinductive
+  constructor box
+  field mem : r ∈ force ∞g
 
-r ∈? endG = no (λ ())
-r ∈? msgSingle p q p≢q l ∞gSub
-  with  p ≟ r  | q ≟ r
-... | yes refl | no _     = yes sender
-... | no _     | yes refl = yes receiver
-... | no _     | no _     with r ∈? force ∞gSub
-...                       | yes r∈gSub = yes (there r∈gSub)
-...                       | no r∉gSub = no (λ x -> {!   !})
-r ∈? msgSingle p q p≢q l ∞gSub
-    | yes refl | yes refl = ⊥-elim (p≢q refl)
-
+open _∞∈_
 
 -- size-g : ∀ { n : ℕ } -> (g : Global n) -> ℕ
 -- size-g endG = 0
