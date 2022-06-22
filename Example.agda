@@ -37,39 +37,18 @@ g₂ : Global n 0
 g₂ = recG (msgSingle′ p q l (varG zero)) msg
 
 {-
-g₂Guarded : GuardedG 0 g₂
-g₂Guarded = rec msg (msg (var zero))
--}
-
-{-
-unguarded, hence not typeable
 g₃ : Global n 0
-g₃ = muG (recG zero) (recG (λ x → {!   !}))
--}
-
-{-
-g₃Unguarded : ¬ (GuardedG 0 g₃)
-g₃Unguarded (rec (var .zero x) x₁) = x refl
+g₃ = recG (varG zero) (guardedVarG {!   !})
 -}
 
 g₄ : Global n 0
 g₄ = recG (recG (msgSingle′ p q l (varG zero)) msg) guardedRecG
 
-{-
-g₄Guarded : GuardedG 0 g₄
-g₄Guarded = rec (rec msg) (rec msg (msg (var zero)))
--}
-
 g₄′ : Global n 0
 g₄′ = recG (recG (msgSingle′ p q l (varG (suc zero))) msg) guardedRecG
 
 {-
-g₄′Guarded : GuardedG 0 g₄′
-g₄′Guarded = rec (rec msg) (rec msg (msg (var (suc zero))))
--}
-
-{-
-Untypeable due to unguarded
+--Untypeable due to unguarded
 g₅ : Global n 0
-g₅ = msgSingle′ p q l (muG (recG zero) (recG {!   !}))
+g₅ = msgSingle′ p q l (recG (varG zero) (guardedVarG {!   !}))
 -}
