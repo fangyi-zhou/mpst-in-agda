@@ -72,12 +72,12 @@ _[_] {t = t} (recG g guardedG) g′ = recG (g [ incr g′ ]) ({! _guarded[_] {ta
 
 endGlobal guarded[ guardedG′ ] = endGlobal
 msg guarded[ guardedG′ ] = msg
-_guarded[_] {t = t} {target = target} (guardedVarG {x = x} xx) guardedG′ with t Data.Nat.≟ toℕ x
+_guarded[_] {t = t} {target = target} (guardedVarG {x = x} toℕ-x<inject₁-target) guardedG′ with t Data.Nat.≟ toℕ x
 ... | yes _ = guardedG′
-... | no xxx = guardedVarG x<target
+... | no notMax = guardedVarG x<target
     where
-      x<target : suc (toℕ (lower₁ x xxx)) ≤ toℕ target
-      x<target rewrite toℕ-lower₁ x xxx rewrite sym (toℕ-inject₁ target) = xx
+      x<target : suc (toℕ (lower₁ x notMax)) ≤ toℕ target
+      x<target rewrite toℕ-lower₁ x notMax rewrite sym (toℕ-inject₁ target) = toℕ-x<inject₁-target
 guardedRecG guarded[ guardedG′ ] = guardedRecG
 
 {-
