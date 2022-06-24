@@ -56,32 +56,32 @@ incr-Guarded msg = msg
 incr-Guarded (guardedVarG x) = guardedVarG (s≤s x)
 incr-Guarded (guardedRecG x) = guardedRecG (incr-Guarded x)
 
-guarded-weaken : ∀{target target′} -> target Data.Fin.≤ target′ -> GuardedG target g -> GuardedG target′ g
-guarded-weaken target≤target′ endGlobal = endGlobal
-guarded-weaken target≤target′ msg = msg
-guarded-weaken target≤target′ (guardedVarG x<target) = {!   !} --guardedVarG (≤-trans x<target target≤target′)
-guarded-weaken {target = target} {target′ = target′} target≤target′ (guardedRecG guarded)
-  = {!   !} -- = guardedRecG (guarded-weaken {target = inject₁ target} (≤-trans (≤-reflexive (toℕ-inject₁ target)) (≤-trans target≤target′ (≤-reflexive (sym (toℕ-inject₁ target′))))) guarded)
+guarded-weaken : ∀{target target′} -> target′ Data.Fin.≤ target -> GuardedG target g -> GuardedG target′ g
+guarded-weaken target′≤target endGlobal = endGlobal
+guarded-weaken target′≤target msg = msg
+guarded-weaken target′≤target (guardedVarG target<x) = guardedVarG (≤-trans (s≤s target′≤target) target<x)
+guarded-weaken {target = target} {target′ = target′} target′≤target (guardedRecG guarded)
+  = guardedRecG (guarded-weaken (s≤s target′≤target) guarded)
 
 _[_] : Global n (suc t) -> Global n t -> Global n t
-_guarded[_] : ∀{t : ℕ} {g : Global n (suc t)} {g′ : Global n t} {target} -> GuardedG (suc target) g -> GuardedG target g′ -> GuardedG target (g [ g′ ])
+_guarded[_] : ∀{t : ℕ} {g : Global n (suc t)} {g′ : Global n t} {target} -> GuardedG (inject₁ target) g -> GuardedG target g′ -> GuardedG target (g [ g′ ])
 
 endG [ g′ ] = endG
 msgSingle p q p≢q l g [ g′ ] = msgSingle p q p≢q l (g [ g′ ])
 _[_] {t = t} (varG recVar) g′ with t Data.Nat.≟ toℕ recVar
 ... | yes _ = g′
 ... | no  notMax = varG (lower₁ recVar notMax)
-_[_] {t = t} (recG g guardedG) g′ = recG (g [ incr g′ ]) {!   !}
+_[_] {t = t} (recG g guardedG) g′ = recG (g [ incr g′ ]) ({!   !} guarded[ {!   !} ])
 
 endGlobal guarded[ guardedG′ ] = endGlobal
 msg guarded[ guardedG′ ] = msg
-_guarded[_] {t = t} {target = target} (guardedVarG {x = x} toℕ-x<suc-inject₁-target) guardedG′ with t Data.Nat.≟ toℕ x
+_guarded[_] {t = t} {target = target} (guardedVarG {x = x} inject₁-target<x) guardedG′ with t Data.Nat.≟ toℕ x
 ... | yes _ = guardedG′
-... | no notMax = {!   !} -- guardedVarG x<target
+... | no notMax = guardedVarG target<x
     where
-      x<target : lower₁ x notMax < target
-      x<target rewrite toℕ-lower₁ x notMax = {!   !}
-guardedRecG guardedG guarded[ guardedG′ ] = guardedRecG (guardedG guarded[ {!   !} ])
+      target<x : target < lower₁ x notMax 
+      target<x rewrite toℕ-lower₁ x notMax rewrite (sym (toℕ-inject₁ target))= inject₁-target<x
+guardedRecG guardedG guarded[ guardedG′ ] = guardedRecG (guardedG guarded[ incr-Guarded guardedG′ ])
 
 {-
 size-g : ∀ { n : ℕ } -> (g : Global n t) -> ℕ
