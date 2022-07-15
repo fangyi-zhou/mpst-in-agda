@@ -3,8 +3,8 @@
 open import Data.Empty using (⊥-elim)
 open import Data.Fin using (Fin; _≟_; suc; inject₁; fromℕ; toℕ; lower₁; _<_; zero)
 open import Data.Fin.Properties using (suc-injective; toℕ-injective; toℕ-fromℕ; toℕ-lower₁; toℕ-inject₁)
-open import Data.Nat using (ℕ; suc; zero; s≤s; z≤n; _≤_)
-open import Data.Nat.Properties using (≤-trans; ≤-reflexive)
+open import Data.Nat using (ℕ; suc; zero; s≤s; z≤n; _≤_; _≤′_; ≤′-refl; ≤′-step)
+open import Data.Nat.Properties using (≤-trans; ≤-reflexive; ≤⇒≤′)
 open import Data.Product using (_×_; _,_; ∃-syntax; proj₁; proj₂)
 open import Data.Sum using (_⊎_)
 open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl; cong; trans; sym)
@@ -78,10 +78,11 @@ inject₁-guarded {target = target} (guardedVarG {x = x} target<x)
 inject₁-guarded (guardedRecG x) = guardedRecG (inject₁-guarded x)
 
 inject-G : t ≤ t′ -> Global n t -> Global n t′
-inject-G {t = zero} {t′ = zero} z≤n g = g
-inject-G {t = zero} {t′ = suc zero} z≤n g = inject₁-G g
-inject-G {t = zero} {t′ = suc t′} z≤n g = inject₁-G (inject-G z≤n g)
-inject-G (s≤s t≤t′) g = {!   !}
+inject′-G : t ≤′ t′ -> Global n t -> Global n t′
+inject-G t≤t′ g = inject′-G (≤⇒≤′ t≤t′) g
+inject′-G ≤′-refl g = g
+inject′-G (≤′-step t≤t′) g = inject₁-G (inject′-G t≤t′ g)
+
 
 -- Inspired by Thiemann
 _[_↦_] : Global n (suc t) -> Fin (suc t) -> Global n 0 -> Global n t
@@ -90,7 +91,7 @@ _[_↦_] : Global n (suc t) -> Fin (suc t) -> Global n 0 -> Global n t
 endG [ idx ↦ g′ ] = endG
 msgSingle p q p≢q l g [ idx ↦ g′ ] = msgSingle p q p≢q l (g [ idx ↦ g′ ])
 recG g x [ idx ↦ g′ ] = recG (g [ suc idx ↦ g′ ]) {!   !}
-_[_↦_] {t = t} (varG zero) zero g′ = {!   !}
+_[_↦_] {t = t} (varG zero) zero g′ = inject-G z≤n g′
 _[_↦_] {t = suc t} (varG zero) (suc idx) g′ = varG {t = suc t} zero
 _[_↦_] (varG (suc recVar)) zero g′ = varG recVar
 _[_↦_] {t = suc t} (varG (suc recVar)) (suc idx) g′ = inject₁-G (varG recVar [ idx ↦ g′ ])
