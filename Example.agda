@@ -35,31 +35,33 @@ g₁ : Global n 0
 g₁ = msgSingle′ p q l endG
 
 g₂ : Global n 0
-g₂ = recG (msgSingle′ p q l (varG zero)) msg
-
+g₂ = recG (msgSingle′ p q l (varG zero)) gG-msg
+{-
 g₄ : Global n 0
-g₄ = recG (recG (msgSingle′ p q l (varG zero)) msg) (guardedRecG msg)
+g₄ = recG (recG (msgSingle′ p q l (varG zero)) gG-msg) (gG-rec gG-msg)
 
 g₄′ : Global n 0
-g₄′ = recG (recG (msgSingle′ p q l (varG (suc zero))) msg) (guardedRecG msg)
-
-{-
---Untypeable due to unguarded
-g₅ : Global n 0
-g₅ = msgSingle′ p q l (recG (varG zero) (guardedVarG {!   !}))
-
-g₃ : Global n 0
-g₃ = recG (varG zero) (guardedVarG {!   !})
-
-gggg : Global n 0
-gggg = recG( recG (varG zero) (guardedVarG {!   !})) (guardedRecG (guardedVarG {!   !}))
-
-ggggg : Global n 0
-ggggg = recG (recG (varG (suc zero)) (guardedVarG {!   !})) (guardedRecG (guardedVarG {!   !}))
+g₄′ = recG (recG (msgSingle′ p q l (varG (suc zero))) gG-msg) (gG-rec gG-msg)
 -}
 
+--Untypeable due to unguarded
+g₅ : Global n 0
+g₅ = msgSingle′ p q l (recG (varG zero) (gG-var {!   !}))
+
+g₃ : Global n 0
+g₃ = recG (varG zero) (gG-var {!   !})
+
+{-
+gggg : Global n 0
+gggg = recG( recG (varG zero) (gG-var {!   !})) (gG-rec (gG-var (s≤s z≤n)))
+
+ggggg : Global n 0
+ggggg = recG (recG (varG (suc zero)) (gG-var {!   !})) (gG-rec (gG-var (s≤s {!   !})))
+
 gg : Global n 0
-gg = recG (recG (msgSingle′ p q l (varG zero)) msg) (guardedRecG msg)
+gg = recG (recG (msgSingle′ p q l (varG zero)) gG-msg) (gG-rec gG-msg)
 
 ggg : Global n 0
-ggg = recG (recG (msgSingle′ p q l (varG (suc zero))) msg) (guardedRecG msg)
+ggg = recG (recG (msgSingle′ p q l (varG (suc zero))) {!   !}) {!   !}
+
+-}
