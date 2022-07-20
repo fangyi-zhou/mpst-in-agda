@@ -30,12 +30,13 @@ interleaved mutual
     gG-msg : ∀{p q p≢q l gSub} -> GuardedG target (msgSingle p q p≢q l gSub)
     gG-var : ∀{x : Fin t} -> x < target -> GuardedG target (varG x)
     {- If we remove recG, then we remove duplicate recursion -}
-    -- gG-rec : ∀{g guarded} -> GuardedG (suc target) g -> GuardedG target (recG g guarded)
+    gG-rec : ∀{g guarded} -> GuardedG (suc target) g -> GuardedG target (recG g guarded)
 
 private
   variable
     n : ℕ
     t t′ : ℕ
+    target target′ : Fin t
     p p′ q q′ r s : Fin n
     p≢q : p ≢ q
     l l′ : Label
@@ -58,13 +59,13 @@ incr-Guarded gG-msg = gG-msg
 incr-Guarded (gG-var x) = gG-var (s≤s x)
 incr-Guarded (gG-rec x) = gG-rec (incr-Guarded x)
 
-guarded-weaken : ∀{target target′} -> target′ Data.Fin.≤ target -> GuardedG target g -> GuardedG target′ g
-guarded-weaken target′≤target gG-end = gG-end
-guarded-weaken target′≤target gG-msg = gG-msg
-guarded-weaken target′≤target (gG-var target<x) = gG-var (≤-trans (s≤s target′≤target) target<x)
-guarded-weaken {target = target} {target′ = target′} target′≤target (gG-rec guarded)
-  = gG-rec (guarded-weaken (s≤s target′≤target) guarded)
 -}
+
+guarded-weaken : target Data.Fin.≤ target′ -> GuardedG target g -> GuardedG target′ g
+guarded-weaken t≤t′ gG-end = gG-end
+guarded-weaken t≤t′ gG-msg = gG-msg
+guarded-weaken t≤t′ (gG-var x<t) = gG-var (≤-trans x<t t≤t′)
+guarded-weaken t≤t′ (gG-rec gG) = gG-rec (guarded-weaken (s≤s t≤t′) gG)
 
 inject₁-< : ∀{x y : Fin n} -> x < y -> inject₁ x < inject₁ y
 inject₁-< {x = x} {y = y} x<y 
@@ -80,12 +81,13 @@ inject₁-G (msgSingle p q p≢q l g) = msgSingle p q p≢q l (inject₁-G g)
 inject₁-G (varG recVar) = varG (inject₁ recVar)
 inject₁-G (recG .endG gG-end) = recG (inject₁-G endG) gG-end
 inject₁-G (recG g@.(msgSingle _ _ _ _ _) gG-msg) = recG (inject₁-G g) gG-msg
+inject₁-G (recG g@(recG gg x) (gG-rec xx)) = recG (inject₁-G g) (inject₁-guarded (gG-rec xx))
 
 inject₁-guarded gG-end = gG-end
 inject₁-guarded gG-msg = gG-msg
 inject₁-guarded {target = target} (gG-var {x = x} x<target)
   = gG-var (inject₁-< x<target)
--- inject₁-guarded (gG-rec x) = {!   !}
+inject₁-guarded (gG-rec gG) = inject₁-guarded {!   !}
 
 inject-G : t ≤ t′ -> Global n t -> Global n t′
 inject′-G : t ≤′ t′ -> Global n t -> Global n t′
@@ -117,6 +119,7 @@ _guarded[_] {g = msgSingle p q x x₁ g} gG g′ = gG-msg
 _guarded[_] {g = varG zero} {idx = zero} gG g′ = {! !}
 _guarded[_] {g = varG zero} {idx = suc idx} gG g′ = {!   !}
 _guarded[_] {g = varG (suc recVar)} {idx = idx} gG g′ = {!   !}
+_guarded[_] {g = recG g x} gG g′ = {!   !}
 
 
 {-
