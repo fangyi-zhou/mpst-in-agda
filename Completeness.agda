@@ -132,7 +132,6 @@ completeness
               rewrite lookup∘update r c lrSub
               = refl
           ... | no r≢t  | no s≢t
-              rewrite proj-prefix-other {l = l′} r s t {r≢s} gSub′ r≢t s≢t
               with p ≟ t  | q ≟ t
           ...   | yes refl | yes refl = ⊥-elim (p≢q refl)
           ...   | yes refl | no  q≢t
