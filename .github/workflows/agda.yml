@@ -8,30 +8,15 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    env:
-      AGDA_VERSION: "2.8.0"
-      STDLIB_VERSION: "2.3"
-
     steps:
+    - name: Setup Agda
+      uses: agda/agda-setup-action@v1.0.0
+      with:
+        agda-version: "2.8.0"
+        agda-stdlib-version: "2.3"
+
     - name: Checkout my library
       uses: actions/checkout@v4
 
-    - name: Install Agda
-      run: |
-        curl -L "https://github.com/agda/agda/releases/download/v${AGDA_VERSION}/Agda-v${AGDA_VERSION}-linux.tar.xz" \
-          -o agda.tar.xz
-        tar xf agda.tar.xz
-        echo "$PWD/Agda-v${AGDA_VERSION}/bin" >> $GITHUB_PATH
-
-    - name: Install stdlib
-      run: |
-        curl -L "https://github.com/agda/agda-stdlib/archive/refs/tags/v${STDLIB_VERSION}.tar.gz" \
-          -o stdlib.tar.gz
-        tar xf stdlib.tar.gz
-        AGDA_DIR=$(agda --print-agda-app-dir)
-        mkdir -p "${AGDA_DIR}"
-        echo "$PWD/agda-stdlib-${STDLIB_VERSION}/standard-library.agda-lib" >> "${AGDA_DIR}/libraries"
-        echo "standard-library" >> "${AGDA_DIR}/defaults"
-
-    - name: Typecheck
+    - name: Typecheck my library
       run: agda Everything.agda
