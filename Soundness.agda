@@ -119,14 +119,14 @@ soundness
           = refl
         c→c′ : (cSub′ [ r ]≔ lr′) [ s ]≔ ls′ ≡ (c [ p ]≔ lp′) [ q ]≔ lq′
         c→c′
-          rewrite []≔-commutes ((((c [ r ]≔ project gSub r) [ s ]≔ project gSub s) [ p ]≔ lp′) [ q ]≔ lq′) r s {lr′} {ls′} r≢s
-          rewrite []≔-commutes (((c [ r ]≔ project gSub r) [ s ]≔ project gSub s) [ p ]≔ lp′) q s {lq′} {ls′} q≢s
-          rewrite []≔-commutes ((c [ r ]≔ project gSub r) [ s ]≔ project gSub s) p s {lp′} {ls′} p≢s
-          rewrite []≔-idempotent (c [ r ]≔ project gSub r) s {project gSub s} {ls′}
-          rewrite []≔-commutes (((c [ r ]≔ project gSub r) [ s ]≔ ls′) [ p ]≔ lp′) q r {lq′} {lr′} q≢r
-          rewrite []≔-commutes ((c [ r ]≔ project gSub r) [ s ]≔ ls′) p r {lp′} {lr′} p≢r
-          rewrite []≔-commutes (c [ r ]≔ project gSub r) s r {ls′} {lr′} (¬≡-flip r≢s)
-          rewrite []≔-idempotent c r {project gSub r} {lr′}
+          rewrite []≔-commutes {x = lr′} {y = ls′} ((((c [ r ]≔ project gSub r) [ s ]≔ project gSub s) [ p ]≔ lp′) [ q ]≔ lq′) r s r≢s
+          rewrite []≔-commutes {x = lq′} {y = ls′} (((c [ r ]≔ project gSub r) [ s ]≔ project gSub s) [ p ]≔ lp′) q s q≢s
+          rewrite []≔-commutes {x = lp′} {y = ls′} ((c [ r ]≔ project gSub r) [ s ]≔ project gSub s) p s p≢s
+          rewrite []≔-idempotent {x = project gSub s} {y = ls′} (c [ r ]≔ project gSub r) s
+          rewrite []≔-commutes {x = lq′} {y = lr′} (((c [ r ]≔ project gSub r) [ s ]≔ ls′) [ p ]≔ lp′) q r q≢r
+          rewrite []≔-commutes {x = lp′} {y = lr′} ((c [ r ]≔ project gSub r) [ s ]≔ ls′) p r p≢r
+          rewrite []≔-commutes {x = ls′} {y = lr′} (c [ r ]≔ project gSub r) s r (¬≡-flip r≢s)
+          rewrite []≔-idempotent {x = project gSub r} {y = lr′} c r
           rewrite lr′≡c[r]
           rewrite ls′≡c[s]
           rewrite []≔-lookup c r

@@ -10,9 +10,9 @@ jobs:
 
     strategy:
       matrix:
-        agda-ref: ["v2.6.2"]
-        ghc-ver: ["8.10.5"]
-        stdlib-ref: ["v1.7"]
+        agda-ref: ["v2.7.0.1"]
+        ghc-ver: ["9.4.8"]
+        stdlib-ref: ["v2.3"]
 
     steps:
     - name: Setup Agda
