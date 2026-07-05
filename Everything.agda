@@ -10,6 +10,8 @@ import Completeness
 import Recursive.Base
 import Recursive.Coinductive
 import Recursive.Projection
+import Recursive.Operational
+import Recursive.Example
 
 
 import Example
