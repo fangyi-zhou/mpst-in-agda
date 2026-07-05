@@ -4,7 +4,7 @@ module Recursive.Coinductive where
 
 open import Data.Fin using (Fin; zero) renaming (suc to fsuc)
 open import Data.Nat using (ℕ; suc)
-open import Relation.Binary.PropositionalEquality using (_≢_)
+open import Relation.Binary.PropositionalEquality using (_≡_; _≢_; refl)
 
 open import Recursive.Base
 
@@ -63,61 +63,167 @@ coEndL : CoLocal n ℓ
 coEndL .observeL = endCL
 
 mutual
-  interpRG : (g : RGlobal n ℓ Γ) -> GuardedRG g -> EnvG n ℓ Γ -> CoGlobal n ℓ
-  interpRG endRG guarded-endRG ρ .observeG = endCG
-  interpRG (msgSingleRG p q p≢q l g) (guarded-msgSingleRG guarded-g) ρ .observeG =
-    msgSingleCG p q p≢q l (interpWeakRG g guarded-g ρ)
-  interpRG (muRG g) (guarded-muRG guarded-g) ρ = interpMuRG g guarded-g ρ
+  record _≈CG_ {n ℓ : ℕ} (g h : CoGlobal n ℓ) : Set where
+    coinductive
+    field
+      view≈G : CoGlobalView≈ (observeG g) (observeG h)
 
-  {-# TERMINATING #-}
-  interpMuRG : (g : RGlobal n ℓ (suc Γ)) -> GuardedBodyRG g -> EnvG n ℓ Γ -> CoGlobal n ℓ
-  interpMuRG g guarded-g ρ .observeG =
-    interpBodyRG g guarded-g (extendG (interpMuRG g guarded-g ρ) ρ)
+  data CoGlobalView≈ {n ℓ : ℕ} : CoGlobalView n ℓ -> CoGlobalView n ℓ -> Set where
+    end≈CG : CoGlobalView≈ endCG endCG
+    msgSingle≈CG :
+      ∀ {p q p≢q p≢q′ l g h}
+      -> g ≈CG h
+      -> CoGlobalView≈ (msgSingleCG p q p≢q l g) (msgSingleCG p q p≢q′ l h)
 
-  interpBodyRG : (g : RGlobal n ℓ (suc Γ)) -> GuardedBodyRG g -> EnvG n ℓ (suc Γ) -> CoGlobalView n ℓ
-  interpBodyRG endRG guarded-body-endRG ρ = endCG
-  interpBodyRG (msgSingleRG p q p≢q l g) (guarded-body-msgSingleRG guarded-g) ρ =
-    msgSingleCG p q p≢q l (interpWeakRG g guarded-g ρ)
+open _≈CG_ public
 
-  interpWeakRG : (g : RGlobal n ℓ Γ) -> WeaklyGuardedRG g -> EnvG n ℓ Γ -> CoGlobal n ℓ
-  interpWeakRG endRG weak-endRG ρ .observeG = endCG
-  interpWeakRG (varRG x) (weak-varRG .x) ρ = ρ x
-  interpWeakRG (msgSingleRG p q p≢q l g) (weak-msgSingleRG guarded-g) ρ .observeG =
-    msgSingleCG p q p≢q l (interpWeakRG g guarded-g ρ)
-  interpWeakRG (muRG g) (weak-muRG guarded-g) ρ = interpMuRG g guarded-g ρ
+refl≈CG : (g : CoGlobal n ℓ) -> g ≈CG g
+view≈G (refl≈CG g) with observeG g
+... | endCG = end≈CG
+... | msgSingleCG p q p≢q l gSub = msgSingle≈CG (refl≈CG gSub)
 
 mutual
-  interpRL : (l : RLocal n ℓ Γ) -> GuardedRL l -> EnvL n ℓ Γ -> CoLocal n ℓ
-  interpRL endRL guarded-endRL ρ .observeL = endCL
-  interpRL (sendSingleRL p l lSub) (guarded-sendSingleRL guarded-lSub) ρ .observeL =
-    sendSingleCL p l (interpWeakRL lSub guarded-lSub ρ)
-  interpRL (recvSingleRL p l lSub) (guarded-recvSingleRL guarded-lSub) ρ .observeL =
-    recvSingleCL p l (interpWeakRL lSub guarded-lSub ρ)
-  interpRL (muRL l) (guarded-muRL guarded-l) ρ = interpMuRL l guarded-l ρ
+  record InterpRG {n ℓ Γ : ℕ} (ρ : EnvG n ℓ Γ) (g : RGlobal n ℓ Γ) (cg : CoGlobal n ℓ) : Set where
+    coinductive
+    field
+      stepRG : StepRG ρ g (observeG cg)
 
-  {-# TERMINATING #-}
-  interpMuRL : (l : RLocal n ℓ (suc Γ)) -> GuardedBodyRL l -> EnvL n ℓ Γ -> CoLocal n ℓ
-  interpMuRL l guarded-l ρ .observeL =
-    interpBodyRL l guarded-l (extendL (interpMuRL l guarded-l ρ) ρ)
+  data StepRG {n ℓ Γ : ℕ} (ρ : EnvG n ℓ Γ) : RGlobal n ℓ Γ -> CoGlobalView n ℓ -> Set where
+    step-endRG : StepRG ρ endRG endCG
+    step-msgSingleRG :
+      ∀ {p q p≢q l g cg}
+      -> InterpWeakRG ρ g cg
+      -> StepRG ρ (msgSingleRG p q p≢q l g) (msgSingleCG p q p≢q l cg)
+    step-muRG :
+      ∀ {g cg}
+      -> BodyStepRG (extendG cg ρ) g (observeG cg)
+      -> StepRG ρ (muRG g) (observeG cg)
 
-  interpBodyRL : (l : RLocal n ℓ (suc Γ)) -> GuardedBodyRL l -> EnvL n ℓ (suc Γ) -> CoLocalView n ℓ
-  interpBodyRL endRL guarded-body-endRL ρ = endCL
-  interpBodyRL (sendSingleRL p l lSub) (guarded-body-sendSingleRL guarded-lSub) ρ =
-    sendSingleCL p l (interpWeakRL lSub guarded-lSub ρ)
-  interpBodyRL (recvSingleRL p l lSub) (guarded-body-recvSingleRL guarded-lSub) ρ =
-    recvSingleCL p l (interpWeakRL lSub guarded-lSub ρ)
+  data BodyStepRG {n ℓ Γ : ℕ} (ρ : EnvG n ℓ Γ) : RGlobal n ℓ Γ -> CoGlobalView n ℓ -> Set where
+    body-endRG : BodyStepRG ρ endRG endCG
+    body-msgSingleRG :
+      ∀ {p q p≢q l g cg}
+      -> InterpWeakRG ρ g cg
+      -> BodyStepRG ρ (msgSingleRG p q p≢q l g) (msgSingleCG p q p≢q l cg)
 
-  interpWeakRL : (l : RLocal n ℓ Γ) -> WeaklyGuardedRL l -> EnvL n ℓ Γ -> CoLocal n ℓ
-  interpWeakRL endRL weak-endRL ρ .observeL = endCL
-  interpWeakRL (varRL x) (weak-varRL .x) ρ = ρ x
-  interpWeakRL (sendSingleRL p l lSub) (weak-sendSingleRL guarded-lSub) ρ .observeL =
-    sendSingleCL p l (interpWeakRL lSub guarded-lSub ρ)
-  interpWeakRL (recvSingleRL p l lSub) (weak-recvSingleRL guarded-lSub) ρ .observeL =
-    recvSingleCL p l (interpWeakRL lSub guarded-lSub ρ)
-  interpWeakRL (muRL l) (weak-muRL guarded-l) ρ = interpMuRL l guarded-l ρ
+  record InterpWeakRG {n ℓ Γ : ℕ} (ρ : EnvG n ℓ Γ) (g : RGlobal n ℓ Γ) (cg : CoGlobal n ℓ) : Set where
+    coinductive
+    field
+      weakStepRG : WeakStepRG ρ g cg
 
-regularGlobal : (g : ClosedRGlobal n ℓ) -> GuardedRG g -> CoGlobal n ℓ
-regularGlobal g guarded-g = interpRG g guarded-g emptyEnvG
+  data WeakStepRG {n ℓ Γ : ℕ} (ρ : EnvG n ℓ Γ) : RGlobal n ℓ Γ -> CoGlobal n ℓ -> Set where
+    weak-endRG :
+      ∀ {cg}
+      -> observeG cg ≡ endCG
+      -> WeakStepRG ρ endRG cg
+    weak-varRG :
+      ∀ {x cg}
+      -> cg ≈CG ρ x
+      -> WeakStepRG ρ (varRG x) cg
+    weak-msgSingleRG :
+      ∀ {p q p≢q l g cg cgSub}
+      -> observeG cg ≡ msgSingleCG p q p≢q l cgSub
+      -> InterpWeakRG ρ g cgSub
+      -> WeakStepRG ρ (msgSingleRG p q p≢q l g) cg
+    weak-muRG :
+      ∀ {g cg}
+      -> InterpRG ρ (muRG g) cg
+      -> WeakStepRG ρ (muRG g) cg
 
-regularLocal : (l : ClosedRLocal n ℓ) -> GuardedRL l -> CoLocal n ℓ
-regularLocal l guarded-l = interpRL l guarded-l emptyEnvL
+open InterpRG public
+open InterpWeakRG public
+
+RegularGlobal : ClosedRGlobal n ℓ -> CoGlobal n ℓ -> Set
+RegularGlobal = InterpRG emptyEnvG
+
+mutual
+  record _≈CL_ {n ℓ : ℕ} (l m : CoLocal n ℓ) : Set where
+    coinductive
+    field
+      view≈L : CoLocalView≈ (observeL l) (observeL m)
+
+  data CoLocalView≈ {n ℓ : ℕ} : CoLocalView n ℓ -> CoLocalView n ℓ -> Set where
+    end≈CL : CoLocalView≈ endCL endCL
+    sendSingle≈CL :
+      ∀ {p l c d}
+      -> c ≈CL d
+      -> CoLocalView≈ (sendSingleCL p l c) (sendSingleCL p l d)
+    recvSingle≈CL :
+      ∀ {p l c d}
+      -> c ≈CL d
+      -> CoLocalView≈ (recvSingleCL p l c) (recvSingleCL p l d)
+
+open _≈CL_ public
+
+refl≈CL : (l : CoLocal n ℓ) -> l ≈CL l
+view≈L (refl≈CL l) with observeL l
+... | endCL = end≈CL
+... | sendSingleCL p label lSub = sendSingle≈CL (refl≈CL lSub)
+... | recvSingleCL p label lSub = recvSingle≈CL (refl≈CL lSub)
+
+mutual
+  record InterpRL {n ℓ Γ : ℕ} (ρ : EnvL n ℓ Γ) (l : RLocal n ℓ Γ) (cl : CoLocal n ℓ) : Set where
+    coinductive
+    field
+      stepRL : StepRL ρ l (observeL cl)
+
+  data StepRL {n ℓ Γ : ℕ} (ρ : EnvL n ℓ Γ) : RLocal n ℓ Γ -> CoLocalView n ℓ -> Set where
+    step-endRL : StepRL ρ endRL endCL
+    step-sendSingleRL :
+      ∀ {p label l cl}
+      -> InterpWeakRL ρ l cl
+      -> StepRL ρ (sendSingleRL p label l) (sendSingleCL p label cl)
+    step-recvSingleRL :
+      ∀ {p label l cl}
+      -> InterpWeakRL ρ l cl
+      -> StepRL ρ (recvSingleRL p label l) (recvSingleCL p label cl)
+    step-muRL :
+      ∀ {l cl}
+      -> BodyStepRL (extendL cl ρ) l (observeL cl)
+      -> StepRL ρ (muRL l) (observeL cl)
+
+  data BodyStepRL {n ℓ Γ : ℕ} (ρ : EnvL n ℓ Γ) : RLocal n ℓ Γ -> CoLocalView n ℓ -> Set where
+    body-endRL : BodyStepRL ρ endRL endCL
+    body-sendSingleRL :
+      ∀ {p label l cl}
+      -> InterpWeakRL ρ l cl
+      -> BodyStepRL ρ (sendSingleRL p label l) (sendSingleCL p label cl)
+    body-recvSingleRL :
+      ∀ {p label l cl}
+      -> InterpWeakRL ρ l cl
+      -> BodyStepRL ρ (recvSingleRL p label l) (recvSingleCL p label cl)
+
+  record InterpWeakRL {n ℓ Γ : ℕ} (ρ : EnvL n ℓ Γ) (l : RLocal n ℓ Γ) (cl : CoLocal n ℓ) : Set where
+    coinductive
+    field
+      weakStepRL : WeakStepRL ρ l cl
+
+  data WeakStepRL {n ℓ Γ : ℕ} (ρ : EnvL n ℓ Γ) : RLocal n ℓ Γ -> CoLocal n ℓ -> Set where
+    weak-endRL :
+      ∀ {cl}
+      -> observeL cl ≡ endCL
+      -> WeakStepRL ρ endRL cl
+    weak-varRL :
+      ∀ {x cl}
+      -> cl ≈CL ρ x
+      -> WeakStepRL ρ (varRL x) cl
+    weak-sendSingleRL :
+      ∀ {p label l cl clSub}
+      -> observeL cl ≡ sendSingleCL p label clSub
+      -> InterpWeakRL ρ l clSub
+      -> WeakStepRL ρ (sendSingleRL p label l) cl
+    weak-recvSingleRL :
+      ∀ {p label l cl clSub}
+      -> observeL cl ≡ recvSingleCL p label clSub
+      -> InterpWeakRL ρ l clSub
+      -> WeakStepRL ρ (recvSingleRL p label l) cl
+    weak-muRL :
+      ∀ {l cl}
+      -> InterpRL ρ (muRL l) cl
+      -> WeakStepRL ρ (muRL l) cl
+
+open InterpRL public
+open InterpWeakRL public
+
+RegularLocal : ClosedRLocal n ℓ -> CoLocal n ℓ -> Set
+RegularLocal = InterpRL emptyEnvL
