@@ -117,10 +117,6 @@ mutual
       ∀ {p q p≢q l g}
       -> WeaklyGuardedRG g
       -> GuardedBodyRG (msgSingleRG p q p≢q l g)
-    guarded-body-muRG :
-      ∀ {g}
-      -> GuardedBodyRG g
-      -> GuardedBodyRG (muRG g)
 
   data WeaklyGuardedRG {n ℓ Γ : ℕ} : RGlobal n ℓ Γ -> Set where
     weak-endRG : WeaklyGuardedRG endRG
@@ -160,10 +156,6 @@ mutual
       ∀ {p l lSub}
       -> WeaklyGuardedRL lSub
       -> GuardedBodyRL (recvSingleRL p l lSub)
-    guarded-body-muRL :
-      ∀ {l}
-      -> GuardedBodyRL l
-      -> GuardedBodyRL (muRL l)
 
   data WeaklyGuardedRL {n ℓ Γ : ℕ} : RLocal n ℓ Γ -> Set where
     weak-endRL : WeaklyGuardedRL endRL
