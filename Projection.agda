@@ -4,7 +4,6 @@ open import Data.Nat using (ℕ)
 open import Data.Product using (∃-syntax; _,_)
 open import Data.Sum using (_⊎_; inj₁; inj₂)
 open import Data.Vec using (lookup; _[_]≔_)
-open import Data.Vec.Properties using (lookup∘update; lookup∘update′)
 open import Relation.Nullary using (yes; no; ¬_)
 open import Relation.Binary.PropositionalEquality using (sym; trans; _≡_; refl; cong; _≢_; module ≡-Reasoning)
 open import Data.Product using (∃-syntax; _,_; proj₁; proj₂; _×_)
@@ -159,14 +158,12 @@ config-gt-remove-prefix {n} {ℓ} {p} {q} {_} {p≢q} {gSub} g c assoc refl
         with p ≟ r    | q ≟ r
       ... | yes refl | yes refl = ⊥-elim (p≢q refl)
       ... | yes refl | no  _
-          rewrite lookup∘update′ p≢q (c [ p ]≔ lpSub) lqSub
-          rewrite lookup∘update p c lpSub
+          rewrite lookup-update₂-left c p q p≢q lpSub lqSub
           = refl
       ... | no _    | yes refl
-          rewrite lookup∘update q (c [ p ]≔ lpSub) lqSub
+          rewrite lookup-update₂-right c p q lpSub lqSub
           = refl
       ... | no p≢r  | no  q≢r
-          rewrite lookup∘update′ (¬≡-flip q≢r) (c [ p ]≔ lpSub) lqSub
-          rewrite lookup∘update′ (¬≡-flip p≢r) c lpSub
+          rewrite lookup-update₂-other c p q r (¬≡-flip p≢r) (¬≡-flip q≢r) lpSub lqSub
           rewrite isProj assoc r
           = proj-prefix-other p q r gSub p≢r q≢r

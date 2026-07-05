@@ -5,7 +5,6 @@ open import Data.Nat.Properties using (suc-injective; 0≢1+n)
 open import Data.Product using (∃-syntax; _×_; _,_; proj₁; proj₂)
 open import Data.Sum using (inj₁; inj₂)
 open import Data.Vec using (lookup; _[_]≔_)
-open import Data.Vec.Properties using (lookup∘update; lookup∘update′)
 open import Relation.Binary.PropositionalEquality using (refl; sym; cong; trans; _≡_; _≢_; module ≡-Reasoning)
 open import Relation.Nullary using (yes; no)
 open ≡-Reasoning
@@ -50,15 +49,13 @@ completeness
       isProj-g′ r with r ≟ p | r ≟ q
       ...   | yes refl | yes refl = ⊥-elim (p≢q refl)
       ...   | no r≢p   | yes refl
-        rewrite lookup∘update q (c [ p ]≔ lp′) lq′
+        rewrite lookup-update₂-right c p q lp′ lq′
         = refl
       ...   | yes refl | no r≢q
-        rewrite lookup∘update′ p≢q (c [ p ]≔ lp′) lq′
-        rewrite lookup∘update p c lp′
+        rewrite lookup-update₂-left c p q p≢q lp′ lq′
         = refl
       ...    | no r≢p  | no r≢q
-        rewrite lookup∘update′ r≢q (c [ p ]≔ lp′) lq′
-        rewrite lookup∘update′ r≢p c lp′
+        rewrite lookup-update₂-other c p q r r≢p r≢q lp′ lq′
         rewrite sym (proj-prefix-other {l = l} p q r {p≢q} g′ (¬≡-flip r≢p) (¬≡-flip r≢q))
         rewrite isProj assoc r
         = refl
@@ -89,14 +86,12 @@ completeness
                   lp≡cSub[p] : lp ≡ lookup cSub p
                   lp≡cSub[p]
                     rewrite lp≡c[p]
-                    rewrite sym (lookup∘update′ (¬≡-flip r≢p) c lrSub)
-                    rewrite sym (lookup∘update′ (¬≡-flip s≢p) (c [ r ]≔ lrSub) lsSub)
+                    rewrite sym (lookup-update₂-other c r s p (¬≡-flip r≢p) (¬≡-flip s≢p) lrSub lsSub)
                     = refl
                   lq≡cSub[q] : lq ≡ lookup cSub q
                   lq≡cSub[q]
                     rewrite lq≡c[q]
-                    rewrite sym (lookup∘update′ (¬≡-flip r≢q) c lrSub)
-                    rewrite sym (lookup∘update′ (¬≡-flip s≢q) (c [ r ]≔ lrSub) lsSub)
+                    rewrite sym (lookup-update₂-other c r s q (¬≡-flip r≢q) (¬≡-flip s≢q) lrSub lsSub)
                     = refl
           g′ : Global n ℓ
           g′ with completeness-gSub
@@ -112,46 +107,36 @@ completeness
           ... | yes refl | yes refl = ⊥-elim (r≢s refl)
           ... | no r≢t   | yes refl
               rewrite sym (isProj gSub′↔cSub′ s)
-              rewrite lookup∘update′ s≢q (c [ p ]≔ lp′) lq′
-              rewrite lookup∘update′ s≢p c lp′
+              rewrite lookup-update₂-other c p q s s≢p s≢q lp′ lq′
               rewrite isProj assoc s
               rewrite proj-prefix-recv {l = l′} r s gSub r≢s
-              rewrite lookup∘update′ s≢q (((c [ r ]≔ lrSub) [ s ]≔ lsSub) [ p ]≔ lp′) lq′
-              rewrite lookup∘update′ s≢p ((c [ r ]≔ lrSub) [ s ]≔ lsSub) lp′
-              rewrite lookup∘update s (c [ r ]≔ lrSub) lsSub
+              rewrite lookup-update₂-other ((c [ r ]≔ lrSub) [ s ]≔ lsSub) p q s s≢p s≢q lp′ lq′
+              rewrite lookup-update₂-right c r s lrSub lsSub
               = refl
           ... | yes refl | no s≢t
               rewrite sym (isProj gSub′↔cSub′ r)
-              rewrite lookup∘update′ r≢q (c [ p ]≔ lp′) lq′
-              rewrite lookup∘update′ r≢p c lp′
+              rewrite lookup-update₂-other c p q r r≢p r≢q lp′ lq′
               rewrite isProj assoc r
               rewrite proj-prefix-send {l = l′} r s gSub r≢s
-              rewrite lookup∘update′ r≢q (((c [ r ]≔ lrSub) [ s ]≔ lsSub) [ p ]≔ lp′) lq′
-              rewrite lookup∘update′ r≢p ((c [ r ]≔ lrSub) [ s ]≔ lsSub) lp′
-              rewrite lookup∘update′ r≢s (c [ r ]≔ lrSub) lsSub
-              rewrite lookup∘update r c lrSub
+              rewrite lookup-update₂-other ((c [ r ]≔ lrSub) [ s ]≔ lsSub) p q r r≢p r≢q lp′ lq′
+              rewrite lookup-update₂-left c r s r≢s lrSub lsSub
               = refl
           ... | no r≢t  | no s≢t
               with p ≟ t  | q ≟ t
           ...   | yes refl | yes refl = ⊥-elim (p≢q refl)
           ...   | yes refl | no  q≢t
-                  rewrite lookup∘update′ p≢q (c [ p ]≔ lp′) lq′
-                  rewrite lookup∘update p c lp′
+                  rewrite lookup-update₂-left c p q p≢q lp′ lq′
                   rewrite sym (isProj gSub′↔cSub′ p)
-                  rewrite lookup∘update′ p≢q (((c [ r ]≔ lrSub) [ s ]≔ lsSub) [ p ]≔ lp′) lq′
-                  rewrite lookup∘update p ((c [ r ]≔ lrSub) [ s ]≔ lsSub) lp′
+                  rewrite lookup-update₂-left ((c [ r ]≔ lrSub) [ s ]≔ lsSub) p q p≢q lp′ lq′
                   = refl
           ...   | no  p≢t  | yes refl
-                  rewrite lookup∘update q (c [ p ]≔ lp′) lq′
+                  rewrite lookup-update₂-right c p q lp′ lq′
                   rewrite sym (isProj gSub′↔cSub′ q)
-                  rewrite lookup∘update q (((c [ r ]≔ lrSub) [ s ]≔ lsSub) [ p ]≔ lp′) lq′
+                  rewrite lookup-update₂-right ((c [ r ]≔ lrSub) [ s ]≔ lsSub) p q lp′ lq′
                   = refl
           ...   | no  p≢t  | no  q≢t
-                  rewrite lookup∘update′ (¬≡-flip q≢t) (c [ p ]≔ lp′) lq′
-                  rewrite lookup∘update′ (¬≡-flip p≢t) c lp′
+                  rewrite lookup-update₂-other c p q t (¬≡-flip p≢t) (¬≡-flip q≢t) lp′ lq′
                   rewrite sym (isProj gSub′↔cSub′ t)
-                  rewrite lookup∘update′ (¬≡-flip q≢t) (((c [ r ]≔ lrSub) [ s ]≔ lsSub) [ p ]≔ lp′) lq′
-                  rewrite lookup∘update′ (¬≡-flip p≢t) ((c [ r ]≔ lrSub) [ s ]≔ lsSub) lp′
-                  rewrite lookup∘update′ (¬≡-flip s≢t) (c [ r ]≔ lrSub) lsSub
-                  rewrite lookup∘update′ (¬≡-flip r≢t) c lrSub
+                  rewrite lookup-update₂-other ((c [ r ]≔ lrSub) [ s ]≔ lsSub) p q t (¬≡-flip p≢t) (¬≡-flip q≢t) lp′ lq′
+                  rewrite lookup-update₂-other c r s t (¬≡-flip r≢t) (¬≡-flip s≢t) lrSub lsSub
                   = refl
