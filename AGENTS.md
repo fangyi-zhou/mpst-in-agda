@@ -16,7 +16,7 @@ You can also run:
 make typecheck
 ```
 
-The project uses Agda 2.7.0.1 and standard-library 2.3 (`standard-library-2.3`).
+The project uses Agda 2.8.0 and standard-library 2.3 (`standard-library-2.3`).
 
 ## Project Structure
 
@@ -32,6 +32,11 @@ Core modules:
 - `Completeness.agda` - if `g ↔ c` and `c` reduces, then `g` reduces; uses a size measure on `g` for termination.
 - `Participation.agda` - participation-related definitions and lemmas.
 - `Example.agda` - concrete examples with `n = 4` roles and `ℓ = 2` labels.
+- `Recursive/Base.agda` - de Bruijn-scoped recursive global/local syntax, substitution, unfolding, and guardedness predicates.
+- `Recursive/Coinductive.agda` - guarded coinductive global/local trees and bisimulation-style relations connecting regular recursive syntax to codata, without `TERMINATING` pragmas or postulates.
+- `Recursive/Projection.agda` - raw recursive projection and recursive configurations.
+- `Recursive/Operational.agda` - one-step operational relations for recursive syntax and codata.
+- `Recursive/Example.agda` - a checked regular loop example, including inductive and coinductive one-step reductions.
 - `Everything.agda` - imports the full development for repository-wide typechecking.
 
 ## Conventions
@@ -39,6 +44,7 @@ Core modules:
 - Inequality evidence `p ≢ q` is carried in `Action` and `msgSingle` constructors rather than computed.
 - Smart constructors `action′` and `msgSingle′` take `{False (p ≟ q)}` for convenience.
 - Syntax constructors are descriptive prefix names (`action`, `msgSingle`, `sendSingle`, `recvSingle`). Mixfix names are reserved for relations/records such as `_-_→g_`, `_-_→l_`, `_-_→c_`, and `_↔_`, with explicit fixity declarations at their definition sites.
+- Modules importing guarded codata use `{-# OPTIONS --guardedness #-}`. Do not use `TERMINATING` or `postulate` to justify recursive/coinductive productivity.
 - `[]≔-commutes` and `[]≔-idempotent` from `Data.Vec.Properties` require named implicit arguments `{x = ...} {y = ...}` in standard-library 2.3, because those variables moved to module-level `private variable` declarations.
 
 ## Workflow
