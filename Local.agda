@@ -17,6 +17,8 @@ private
     l l′ : Fin ℓ
     lSub lSub′ : Local n ℓ
 
+infix 4 _-_→l_ _-_→c_
+
 endL≢sendSingle : ∀ { lSub } -> endL {n} ≢ sendSingle q l lSub
 endL≢sendSingle ()
 

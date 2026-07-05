@@ -38,6 +38,7 @@ Core modules:
 
 - Inequality evidence `p ≢ q` is carried in `Action` and `msgSingle` constructors rather than computed.
 - Smart constructors `action′` and `msgSingle′` take `{False (p ≟ q)}` for convenience.
+- Syntax constructors are descriptive prefix names (`action`, `msgSingle`, `sendSingle`, `recvSingle`). Mixfix names are reserved for relations/records such as `_-_→g_`, `_-_→l_`, `_-_→c_`, and `_↔_`, with explicit fixity declarations at their definition sites.
 - `[]≔-commutes` and `[]≔-idempotent` from `Data.Vec.Properties` require named implicit arguments `{x = ...} {y = ...}` in standard-library 2.3, because those variables moved to module-level `private variable` declarations.
 
 ## Workflow

@@ -21,6 +21,8 @@ private
     g gSub : Global n ℓ
     lSub : Local n ℓ
 
+infix 4 _↔_
+
 project : Global n ℓ -> Fin n -> Local n ℓ
 project endG _
   = endL

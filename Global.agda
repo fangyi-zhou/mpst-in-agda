@@ -17,6 +17,8 @@ private
     l l′ : Fin ℓ
     g gSub gSub′ : Global n ℓ
 
+infix 4 _-_→g_
+
 msgSingle′ : (p q : Fin n) -> {False (p ≟ q)} -> Fin ℓ -> Global n ℓ -> Global n ℓ
 msgSingle′ p q {p≢q} l gSub = msgSingle p q (toWitnessFalse p≢q) l gSub
 
